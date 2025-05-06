@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uten_wallet/features/onboarding/presentaion/pages/last_onboarding_screen.dart';
-
 import 'features/onboarding/presentaion/bloc/onboarding_bloc.dart';
 import 'features/onboarding/presentaion/pages/onboarding_pages.dart';
 

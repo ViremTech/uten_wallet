@@ -1,6 +1,14 @@
+import 'package:convert/convert.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:uten_wallet/features/authentication/presentaion/bloc/auth_bloc.dart';
+import 'package:uten_wallet/features/wallet/presentaion/bloc/import_wallet_bloc/import_wallet_bloc.dart';
+import 'package:uten_wallet/features/wallet/presentaion/pages/wallet_home.dart';
+import '../../../onboarding/presentaion/widget/button_widget.dart';
 import '../widget/seed_phrase_field.dart';
 import '../widget/password_field.dart';
+import 'package:bip32/bip32.dart' as bip32;
+import 'package:bip39/bip39.dart' as bip39;
 
 class ImportWallet extends StatefulWidget {
   const ImportWallet({super.key});
@@ -14,7 +22,7 @@ class _ImportWalletState extends State<ImportWallet> {
   final _seedController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-
+  late String privateKey;
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
 
@@ -66,8 +74,19 @@ class _ImportWalletState extends State<ImportWallet> {
     });
   }
 
+  String generatePrivate(String mnemonic) {
+    final seed = bip39.mnemonicToSeed(mnemonic);
+    final root = bip32.BIP32.fromSeed(seed);
+    final path = "m/44'/60'/0'/0/0";
+    final childKey = root.derivePath(path);
+    final privateKey = childKey.privateKey;
+    final hexPrivateKey = hex.encode(privateKey!);
+    return hexPrivateKey;
+  }
+
   @override
   void initState() {
+    privateKey = generatePrivate(_seedController.text);
     super.initState();
     _passwordController.addListener(_validatePassword);
     _confirmPasswordController.addListener(_validateConfirmPassword);
@@ -190,16 +209,81 @@ class _ImportWalletState extends State<ImportWallet> {
             padding: const EdgeInsets.all(16),
             child: SizedBox(
               width: double.infinity,
-              child: ElevatedButton(
-                onPressed: _isFormValid
-                    ? () {
+              child: MultiBlocListener(
+                listeners: [
+                  BlocListener<AuthBloc, AuthState>(
+                    listener: (context, state) {
+                      if (state is AuthSuccess) {
+                        context.read<ImportWalletBloc>().add(
+                              ImportWalletRequested(
+                                name: 'Wallet 1',
+                                privateKey: privateKey,
+                                network: 'ethereum',
+                              ),
+                            );
+                      }
+                      if (state is AuthError) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text('Wallet imported successfully!')),
+                          SnackBar(
+                            content: Text(
+                              state.message,
+                            ),
+                          ),
                         );
                       }
-                    : null,
-                child: const Text('Import Wallet'),
+                    },
+                  ),
+                  BlocListener<ImportWalletBloc, ImportWalletState>(
+                    listener: (context, state) {
+                      if (state is ImportWalletSuccess) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Wallet imported successfully!',
+                            ),
+                          ),
+                        );
+                        Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => WalletHome(
+                                      wallet: state.wallet,
+                                    )),
+                            (route) => false);
+                      }
+                      if (state is ImportWalletFailure) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              state.message,
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                ],
+                child: Container(
+                  height: 100,
+                  padding: EdgeInsets.symmetric(vertical: 20),
+                  child: ButtonWidget(
+                    paddng: 16,
+                    onPressed: _isFormValid
+                        ? () {
+                            context.read<AuthBloc>().add(
+                                  SavePasswordEvent(
+                                    password: _passwordController.text,
+                                  ),
+                                );
+                          }
+                        : null,
+                    color: _isFormValid && _agreedToTerms
+                        ? Colors.white
+                        : Colors.grey[900],
+                    text: 'Next',
+                    textColor: Colors.black,
+                  ),
+                ),
               ),
             ),
           ),
@@ -215,11 +299,11 @@ class PasswordRequirementsList extends StatelessWidget {
   final bool hasNumber;
 
   const PasswordRequirementsList({
-    Key? key,
+    super.key,
     required this.hasMinLength,
     required this.hasUppercase,
     required this.hasNumber,
-  }) : super(key: key);
+  });
 
   Widget _buildItem(String label, bool met) {
     return Row(
