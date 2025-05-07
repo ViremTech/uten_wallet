@@ -6,12 +6,14 @@ import 'package:uten_wallet/depency_injection.dart';
 import 'package:uten_wallet/features/authentication/presentaion/bloc/auth_bloc.dart';
 import 'package:uten_wallet/features/wallet/presentaion/bloc/generate_wallet_bloc/generate_wallet_bloc.dart';
 import 'package:uten_wallet/features/wallet/presentaion/bloc/get_active_wallet/get_active_wallet_bloc.dart';
+import 'package:uten_wallet/features/wallet/presentaion/bloc/get_all_wallet/wallet_bloc.dart';
 import 'package:uten_wallet/features/wallet/presentaion/bloc/get_total_balance_bloc/get_total_balance_bloc.dart';
 import 'package:uten_wallet/features/wallet/presentaion/bloc/import_wallet_bloc/import_wallet_bloc.dart';
 import 'package:uten_wallet/features/wallet/presentaion/bloc/mnemonic_bloc/generate_mnemonic_bloc.dart';
 import 'package:uten_wallet/init_page.dart';
 
 import 'features/onboarding/presentaion/bloc/onboarding_bloc.dart';
+import 'features/wallet/presentaion/pages/wallets_page.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,6 +28,9 @@ void main() {
       ),
       BlocProvider(
         create: (context) => sl<AuthBloc>(),
+      ),
+      BlocProvider(
+        create: (context) => sl<WalletBloc>(),
       ),
       BlocProvider(
         create: (context) => sl<GenerateMnemonicBloc>(),

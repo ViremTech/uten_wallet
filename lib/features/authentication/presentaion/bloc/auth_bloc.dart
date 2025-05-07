@@ -1,13 +1,7 @@
-import 'dart:convert';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:uten_wallet/core/usecase/usecase.dart';
 import 'package:uten_wallet/features/authentication/domain/usecase/delete_password_usecase.dart';
-import 'package:uten_wallet/features/wallet/data/model/wallet_model.dart';
-import 'package:uten_wallet/features/wallet/domain/entity/wallet_entity.dart';
-
 import '../../domain/usecase/persist_login_usecase.dart';
 import '../../domain/usecase/save_password.dart';
 import '../../domain/usecase/validate_password.dart';

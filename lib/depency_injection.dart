@@ -24,10 +24,10 @@ import 'package:uten_wallet/features/wallet/domain/usecase/set_active_wallet.dar
 import 'package:uten_wallet/features/wallet/domain/usecase/update_wallet.dart';
 import 'package:uten_wallet/features/wallet/presentaion/bloc/generate_wallet_bloc/generate_wallet_bloc.dart';
 import 'package:uten_wallet/features/wallet/presentaion/bloc/get_active_wallet/get_active_wallet_bloc.dart';
+import 'package:uten_wallet/features/wallet/presentaion/bloc/get_all_wallet/wallet_bloc.dart';
 import 'package:uten_wallet/features/wallet/presentaion/bloc/get_total_balance_bloc/get_total_balance_bloc.dart';
 import 'package:uten_wallet/features/wallet/presentaion/bloc/import_wallet_bloc/import_wallet_bloc.dart';
 import 'package:uten_wallet/features/wallet/presentaion/bloc/mnemonic_bloc/generate_mnemonic_bloc.dart';
-
 import 'features/onboarding/data/data_source/onboarding_local_data_source.dart';
 import 'features/onboarding/data/repo_impl/onboarding_repo_imp.dart';
 import 'features/onboarding/domain/repository/onboarding_repo.dart';
@@ -47,44 +47,27 @@ void initDependency() {
 }
 
 void _initAuth() {
-  // Local storage and dependencies
   sl
     ..registerSingleton<AuthLocalDatasource>(
-      AuthLocalDatasourceImpl(
-        storage: sl<FlutterSecureStorage>(),
-      ),
-    )
+        AuthLocalDatasourceImpl(storage: sl<FlutterSecureStorage>()))
     ..registerSingleton<AuthRepo>(
-      AuthRepoImpl(
-        localDatasource: sl<AuthLocalDatasource>(),
-      ),
-    )
+        AuthRepoImpl(localDatasource: sl<AuthLocalDatasource>()))
     ..registerFactory<SavePasswordUsecase>(
-      () => SavePasswordUsecase(
-        authRepo: sl<AuthRepo>(),
-      ),
-    )
-    ..registerFactory<PersistLoginUsecase>(() => PersistLoginUsecase(
-          authRepo: sl<AuthRepo>(),
-        ))
+        () => SavePasswordUsecase(authRepo: sl<AuthRepo>()))
+    ..registerFactory<PersistLoginUsecase>(
+        () => PersistLoginUsecase(authRepo: sl<AuthRepo>()))
     ..registerFactory<DeletePasswordUsecase>(
-      () => DeletePasswordUsecase(
-        authRepo: sl<AuthRepo>(),
-      ),
+      () => DeletePasswordUsecase(authRepo: sl<AuthRepo>()),
     )
     ..registerFactory(
-      () => ValidatePasswordUsecase(
-        authRepo: sl<AuthRepo>(),
-      ),
+      () => ValidatePasswordUsecase(authRepo: sl<AuthRepo>()),
     )
-    ..registerFactory(
-      () => AuthBloc(
-        sl<DeletePasswordUsecase>(),
-        sl<PersistLoginUsecase>(),
-        sl<SavePasswordUsecase>(),
-        sl<ValidatePasswordUsecase>(),
-      ),
-    );
+    ..registerFactory(() => AuthBloc(
+          sl<DeletePasswordUsecase>(),
+          sl<PersistLoginUsecase>(),
+          sl<SavePasswordUsecase>(),
+          sl<ValidatePasswordUsecase>(),
+        ));
 }
 
 void _wallet() {
@@ -113,7 +96,8 @@ void _wallet() {
     ..registerFactory(() => ImportWalletBloc(sl<ImportWallet>()))
     ..registerFactory(() => GenerateWalletBloc(sl<GenerateWallet>()))
     ..registerFactory(
-        () => GetActiveWalletBloc(getActiveWallet: sl<GetActiveWallet>()));
+        () => GetActiveWalletBloc(getActiveWallet: sl<GetActiveWallet>()))
+    ..registerFactory(() => WalletBloc(sl<GetAllWallets>()));
 }
 
 void _initOnboarding() {

@@ -3,8 +3,8 @@ import 'package:uten_wallet/core/constant/constant.dart';
 import 'package:uten_wallet/features/onboarding/presentaion/widget/button_widget.dart';
 import 'package:uten_wallet/features/wallet/domain/entity/wallet_entity.dart';
 import 'package:uten_wallet/features/wallet/presentaion/pages/receieve_page.dart';
+import 'package:uten_wallet/features/wallet/presentaion/pages/wallets_page.dart';
 import 'package:uten_wallet/features/wallet/presentaion/widget/Icon_text_widget.dart';
-import 'package:flutter/services.dart';
 import 'package:uten_wallet/features/wallet/presentaion/widget/address_widget.dart';
 
 import '../../../../core/util/truncate_address.dart';
@@ -38,27 +38,37 @@ class _WalletHomeState extends State<WalletHome> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      children: [
-                        Container(
-                          width: 30,
-                          height: 30,
-                          decoration: BoxDecoration(
-                            color: Colors.grey,
-                            borderRadius: BorderRadius.circular(20),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => WalletsPage(),
                           ),
-                          child: const Icon(
-                            Icons.person,
-                            size: 18,
+                        );
+                      },
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 30,
+                            height: 30,
+                            decoration: BoxDecoration(
+                              color: Colors.grey,
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: const Icon(
+                              Icons.person,
+                              size: 18,
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          widget.wallet.name,
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                        const Icon(Icons.arrow_drop_down),
-                      ],
+                          const SizedBox(width: 8),
+                          Text(
+                            widget.wallet.name,
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                          const Icon(Icons.arrow_drop_down),
+                        ],
+                      ),
                     ),
                     Row(
                       children: [

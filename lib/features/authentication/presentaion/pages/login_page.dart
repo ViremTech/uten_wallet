@@ -105,10 +105,6 @@ class _LoginPageState extends State<LoginPage> {
                         _obscureText = !_obscureText;
                       },
                     );
-                    context.read<AuthBloc>().add(
-                          ValidatePasswordEvent(
-                              password: _passwordController.text),
-                        );
                   },
                   controller: _passwordController,
                   validator: (_) => _passwordError,
@@ -119,7 +115,14 @@ class _LoginPageState extends State<LoginPage> {
               SizedBox(height: 36),
               ButtonWidget(
                   paddng: 16,
-                  onPressed: _isFormValid ? () {} : null,
+                  onPressed: _isFormValid
+                      ? () {
+                          context.read<AuthBloc>().add(
+                                ValidatePasswordEvent(
+                                    password: _passwordController.text),
+                              );
+                        }
+                      : null,
                   color: _isFormValid ? Colors.white : Colors.grey,
                   text: 'Login',
                   textColor: Colors.black),
