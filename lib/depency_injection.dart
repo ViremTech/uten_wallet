@@ -1,5 +1,6 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
+import 'package:uten_wallet/core/bloc/persist_bloc/persist_bloc.dart';
 import 'package:uten_wallet/features/authentication/data/data_source/auth_local_datasource.dart';
 import 'package:uten_wallet/features/authentication/data/repo_impl/auth_repo_impl.dart';
 import 'package:uten_wallet/features/authentication/domain/repository/auth_repo.dart';
@@ -42,6 +43,7 @@ void initDependency() {
   _initAuth();
   _wallet();
   _initOnboarding();
+  _persitLgoin();
 }
 
 void _initAuth() {
@@ -131,4 +133,8 @@ void _initOnboarding() {
         setLastScreenUseCase: sl<SetLastScreenUseCase>(),
       ),
     );
+}
+
+void _persitLgoin() {
+  sl.registerFactory(() => PersistBloc(sl<FlutterSecureStorage>()));
 }

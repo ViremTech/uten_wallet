@@ -221,8 +221,7 @@ class _ImportWalletState extends State<ImportWallet> {
                                 network: 'ethereum',
                               ),
                             );
-                      }
-                      if (state is AuthError) {
+                      } else if (state is AuthError) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             content: Text(
@@ -243,12 +242,14 @@ class _ImportWalletState extends State<ImportWallet> {
                             ),
                           ),
                         );
+
                         Navigator.pushAndRemoveUntil(
                             context,
                             MaterialPageRoute(
                                 builder: (context) => WalletHome(
                                       wallet: state.wallet,
-                                    )),
+                                    ),
+                                settings: RouteSettings(name: '/wallet_home')),
                             (route) => false);
                       }
                       if (state is ImportWalletFailure) {

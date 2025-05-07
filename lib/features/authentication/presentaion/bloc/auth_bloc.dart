@@ -1,7 +1,12 @@
+import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:uten_wallet/core/usecase/usecase.dart';
 import 'package:uten_wallet/features/authentication/domain/usecase/delete_password_usecase.dart';
+import 'package:uten_wallet/features/wallet/data/model/wallet_model.dart';
+import 'package:uten_wallet/features/wallet/domain/entity/wallet_entity.dart';
 
 import '../../domain/usecase/persist_login_usecase.dart';
 import '../../domain/usecase/save_password.dart';
@@ -35,20 +40,34 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final res = await validatePassword(event.password);
 
       res.fold(
-        (failure) => emit(AuthError(message: failure.message)),
+        (failure) {
+          emit(AuthError(message: failure.message));
+        },
         (success) => emit(
-          Authenticated(isAuthenticated: success),
+          Authenticated(
+            isAuthenticated: success,
+          ),
         ),
       );
     });
-    on<DeletePasswordEvent>((event, emit) async {
+    on<DeletePasswordEvent>(
+      (event, emit) async {
+        emit(AuthLoading());
+        final res = await deletePassword(NoParams());
+        res.fold(
+          (failure) => emit(AuthError(message: failure.message)),
+          (success) => emit(
+            PassDeleted(deleted: success),
+          ),
+        );
+      },
+    );
+    on<PersistLoginStateEvent>((event, emit) async {
       emit(AuthLoading());
-      final res = await deletePassword(NoParams());
+      final res = await persistLoginUsecase(Param(value: event.status));
       res.fold(
         (failure) => emit(AuthError(message: failure.message)),
-        (success) => emit(
-          PassDeleted(deleted: success),
-        ),
+        (success) => emit(Persisted(isPersisted: success)),
       );
     });
   }

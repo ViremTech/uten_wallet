@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:uten_wallet/core/bloc/persist_bloc/persist_bloc.dart';
 import 'package:uten_wallet/core/theme/dart_theme.dart';
 import 'package:uten_wallet/depency_injection.dart';
 import 'package:uten_wallet/features/authentication/presentaion/bloc/auth_bloc.dart';
@@ -19,6 +20,9 @@ void main() {
     providers: [
       BlocProvider(
         create: (_) => sl<OnboardingBloc>()..add(CheckIfSeenOnboarding()),
+      ),
+      BlocProvider(
+        create: (_) => sl<PersistBloc>(),
       ),
       BlocProvider(
         create: (context) => sl<AuthBloc>(),

@@ -16,3 +16,8 @@ class ValidatePasswordEvent extends AuthEvent {
 }
 
 class DeletePasswordEvent extends AuthEvent {}
+
+class PersistLoginStateEvent extends AuthEvent {
+  final String status;
+  PersistLoginStateEvent(this.status);
+}
