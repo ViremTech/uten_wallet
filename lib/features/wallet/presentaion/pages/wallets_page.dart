@@ -6,6 +6,7 @@ import 'package:uten_wallet/features/wallet/domain/entity/wallet_entity.dart';
 import 'package:uten_wallet/features/wallet/presentaion/bloc/get_all_wallet/wallet_bloc.dart';
 import 'package:uten_wallet/features/wallet/presentaion/bloc/get_all_wallet/wallet_state.dart';
 import 'package:uten_wallet/features/wallet/presentaion/pages/add_existing_wallet.dart';
+import 'package:uten_wallet/features/wallet/presentaion/pages/create_new_wallet_screen.dart';
 import 'package:uten_wallet/features/wallet/presentaion/widget/listtile_widget.dart';
 
 import '../bloc/get_all_wallet/wallet_event.dart';
@@ -161,7 +162,7 @@ void _showModalBottomSheet(BuildContext context) {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => AddExistingWallet(),
+                      builder: (context) => CreateNewWalletScreen(),
                     ),
                   );
                 },

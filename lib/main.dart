@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uten_wallet/core/bloc/persist_bloc/persist_bloc.dart';
+import 'package:uten_wallet/core/network/presentaion/bloc/evmchain_bloc.dart';
 import 'package:uten_wallet/core/theme/dart_theme.dart';
 import 'package:uten_wallet/depency_injection.dart';
 import 'package:uten_wallet/features/authentication/presentaion/bloc/auth_bloc.dart';
@@ -11,12 +12,11 @@ import 'package:uten_wallet/features/wallet/presentaion/bloc/get_total_balance_b
 import 'package:uten_wallet/features/wallet/presentaion/bloc/import_wallet_bloc/import_wallet_bloc.dart';
 import 'package:uten_wallet/features/wallet/presentaion/bloc/mnemonic_bloc/generate_mnemonic_bloc.dart';
 import 'package:uten_wallet/init_page.dart';
-
 import 'features/onboarding/presentaion/bloc/onboarding_bloc.dart';
-import 'features/wallet/presentaion/pages/wallets_page.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+
   initDependency();
   runApp(MultiBlocProvider(
     providers: [
@@ -28,6 +28,9 @@ void main() {
       ),
       BlocProvider(
         create: (context) => sl<AuthBloc>(),
+      ),
+      BlocProvider(
+        create: (context) => sl<EvmChainBloc>(),
       ),
       BlocProvider(
         create: (context) => sl<WalletBloc>(),

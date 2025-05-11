@@ -1,6 +1,17 @@
+// lib/dependency_injection.dart
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
+import 'package:http/http.dart' as http;
+import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:uten_wallet/core/bloc/persist_bloc/persist_bloc.dart';
+import 'package:uten_wallet/core/network/data/data_source/local_data_source/local_data_source.dart';
+import 'package:uten_wallet/core/network/data/data_source/remote_data_source/remote_data_source.dart';
+import 'package:uten_wallet/core/network/data/repo_impl/network_repo_impl.dart';
+import 'package:uten_wallet/core/network/domain/repository/network_repo.dart';
+import 'package:uten_wallet/core/network/domain/usecase/getevmchainsusecase.dart';
+import 'package:uten_wallet/core/network/presentaion/bloc/evmchain_bloc.dart';
+import 'package:uten_wallet/core/network_info/network_info.dart';
 import 'package:uten_wallet/features/authentication/data/data_source/auth_local_datasource.dart';
 import 'package:uten_wallet/features/authentication/data/repo_impl/auth_repo_impl.dart';
 import 'package:uten_wallet/features/authentication/domain/repository/auth_repo.dart';
@@ -9,6 +20,11 @@ import 'package:uten_wallet/features/authentication/domain/usecase/persist_login
 import 'package:uten_wallet/features/authentication/domain/usecase/save_password.dart';
 import 'package:uten_wallet/features/authentication/domain/usecase/validate_password.dart';
 import 'package:uten_wallet/features/authentication/presentaion/bloc/auth_bloc.dart';
+import 'package:uten_wallet/features/onboarding/data/data_source/onboarding_local_data_source.dart';
+import 'package:uten_wallet/features/onboarding/data/repo_impl/onboarding_repo_imp.dart';
+import 'package:uten_wallet/features/onboarding/domain/repository/onboarding_repo.dart';
+import 'package:uten_wallet/features/onboarding/domain/usecase/check_last_screen_usecase.dart';
+import 'package:uten_wallet/features/onboarding/domain/usecase/set_last_screen_usecase.dart';
 import 'package:uten_wallet/features/onboarding/presentaion/bloc/onboarding_bloc.dart';
 import 'package:uten_wallet/features/wallet/data/data_source/wallet_local_storage.dart';
 import 'package:uten_wallet/features/wallet/data/repo_impl/wallet_repo_impl.dart';
@@ -28,22 +44,27 @@ import 'package:uten_wallet/features/wallet/presentaion/bloc/get_all_wallet/wall
 import 'package:uten_wallet/features/wallet/presentaion/bloc/get_total_balance_bloc/get_total_balance_bloc.dart';
 import 'package:uten_wallet/features/wallet/presentaion/bloc/import_wallet_bloc/import_wallet_bloc.dart';
 import 'package:uten_wallet/features/wallet/presentaion/bloc/mnemonic_bloc/generate_mnemonic_bloc.dart';
-import 'features/onboarding/data/data_source/onboarding_local_data_source.dart';
-import 'features/onboarding/data/repo_impl/onboarding_repo_imp.dart';
-import 'features/onboarding/domain/repository/onboarding_repo.dart';
-import 'features/onboarding/domain/usecase/check_last_screen_usecase.dart';
-import 'features/onboarding/domain/usecase/set_last_screen_usecase.dart';
+
+import 'core/network/domain/usecase/addnewtwork.dart';
+import 'core/network/domain/usecase/deletenetwork.dart';
+import 'core/network/domain/usecase/getnetworkbyid.dart';
+import 'core/network/domain/usecase/updatenetwork.dart';
 
 final sl = GetIt.instance;
+final internet = InternetConnectionChecker.instance;
 
 void initDependency() {
+  // Register core resources
   sl.registerLazySingleton<FlutterSecureStorage>(
-    () => FlutterSecureStorage(),
-  );
+      () => const FlutterSecureStorage());
+  sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(internet));
+  sl.registerLazySingleton<http.Client>(() => http.Client());
+
   _initAuth();
   _wallet();
   _initOnboarding();
   _persitLgoin();
+  _evmChain();
 }
 
 void _initAuth() {
@@ -57,11 +78,8 @@ void _initAuth() {
     ..registerFactory<PersistLoginUsecase>(
         () => PersistLoginUsecase(authRepo: sl<AuthRepo>()))
     ..registerFactory<DeletePasswordUsecase>(
-      () => DeletePasswordUsecase(authRepo: sl<AuthRepo>()),
-    )
-    ..registerFactory(
-      () => ValidatePasswordUsecase(authRepo: sl<AuthRepo>()),
-    )
+        () => DeletePasswordUsecase(authRepo: sl<AuthRepo>()))
+    ..registerFactory(() => ValidatePasswordUsecase(authRepo: sl<AuthRepo>()))
     ..registerFactory(() => AuthBloc(
           sl<DeletePasswordUsecase>(),
           sl<PersistLoginUsecase>(),
@@ -73,15 +91,9 @@ void _initAuth() {
 void _wallet() {
   sl
     ..registerSingleton<WalletLocalStorage>(
-      WalletLocalStorageImpl(
-        storage: sl<FlutterSecureStorage>(),
-      ),
-    )
+        WalletLocalStorageImpl(storage: sl<FlutterSecureStorage>()))
     ..registerSingleton<WalletRepo>(
-      WalletRepoImpl(
-        localStorage: sl<WalletLocalStorage>(),
-      ),
-    )
+        WalletRepoImpl(localStorage: sl<WalletLocalStorage>()))
     ..registerFactory(() => GenerateMnemonic(sl<WalletRepo>()))
     ..registerFactory(() => DeleteWallet(sl<WalletRepo>()))
     ..registerFactory(() => GenerateWallet(sl<WalletRepo>()))
@@ -103,22 +115,61 @@ void _wallet() {
 void _initOnboarding() {
   sl
     ..registerSingleton<OnboardingLocalDataSource>(
-      OnboardingLocalDataSourceImpl(storage: sl<FlutterSecureStorage>()),
-    )
-    ..registerSingleton<OnboardingRepository>(
-      OnboardingRepositoryImpl(
-          localDataSource: sl<OnboardingLocalDataSource>()),
-    )
+        OnboardingLocalDataSourceImpl(storage: sl<FlutterSecureStorage>()))
+    ..registerSingleton<OnboardingRepository>(OnboardingRepositoryImpl(
+        localDataSource: sl<OnboardingLocalDataSource>()))
     ..registerFactory(() => SetLastScreenUseCase(sl<OnboardingRepository>()))
     ..registerFactory(() => CheckLastScreenUseCase(sl<OnboardingRepository>()))
-    ..registerFactory(
-      () => OnboardingBloc(
+    ..registerFactory(() => OnboardingBloc(
         checkLastScreenUseCase: sl<CheckLastScreenUseCase>(),
-        setLastScreenUseCase: sl<SetLastScreenUseCase>(),
-      ),
-    );
+        setLastScreenUseCase: sl<SetLastScreenUseCase>()));
 }
 
 void _persitLgoin() {
   sl.registerFactory(() => PersistBloc(sl<FlutterSecureStorage>()));
+}
+
+void _evmChain() {
+  // Register the remote data source for EVM Chains
+  sl.registerLazySingleton<EvmChainRemoteDataSource>(
+    () => EvmChainRemoteDataSourceImpl(
+      client: sl<http.Client>(),
+      apiUrl: 'https://chainid.network/chains.json',
+    ),
+  );
+
+  // Register the local data source
+  sl.registerLazySingleton<EvmChainLocalDataSource>(
+    () => EvmChainLocalDataSourceImpl(storage: sl<FlutterSecureStorage>()),
+  );
+
+  // Register the repository
+  sl.registerLazySingleton<EvmChainRepository>(
+    () => EvmChainRepositoryImpl(
+      remoteDataSource: sl<EvmChainRemoteDataSource>(),
+      localDataSource: sl<EvmChainLocalDataSource>(),
+      networkInfo: sl<NetworkInfo>(),
+    ),
+  );
+
+  // Register use cases
+  sl.registerFactory<GetEvmChains>(
+      () => GetEvmChains(sl<EvmChainRepository>()));
+  sl.registerFactory<AddNetwork>(() => AddNetwork(sl<EvmChainRepository>()));
+  sl.registerFactory<UpdateNetwork>(
+      () => UpdateNetwork(sl<EvmChainRepository>()));
+  sl.registerFactory<DeleteNetwork>(
+      () => DeleteNetwork(sl<EvmChainRepository>()));
+  sl.registerFactory<GetNetworkById>(
+      () => GetNetworkById(sl<EvmChainRepository>()));
+
+  // Register the BLoC
+  sl.registerFactory<EvmChainBloc>(
+    () => EvmChainBloc(
+      sl<GetEvmChains>(),
+      addNetwork: sl<AddNetwork>(),
+      updateNetwork: sl<UpdateNetwork>(),
+      deleteNetwork: sl<DeleteNetwork>(),
+    ),
+  );
 }

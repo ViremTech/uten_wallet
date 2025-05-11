@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:uten_wallet/core/constant/constant.dart';
+import 'package:uten_wallet/core/network/presentaion/pages/network_page.dart';
 import 'package:uten_wallet/features/onboarding/presentaion/widget/button_widget.dart';
 import 'package:uten_wallet/features/wallet/domain/entity/wallet_entity.dart';
 import 'package:uten_wallet/features/wallet/presentaion/pages/receieve_page.dart';
@@ -85,14 +86,14 @@ class _WalletHomeState extends State<WalletHome> {
                             );
                           },
                         ),
-                        IconButton(
-                          icon: const Icon(
-                            Icons.qr_code_scanner,
-                            size: 24,
-                          ),
-                          tooltip: 'Scan QR',
-                          onPressed: () {},
-                        ),
+                        // IconButton(
+                        //   icon: const Icon(
+                        //     Icons.qr_code_scanner,
+                        //     size: 24,
+                        //   ),
+                        //   tooltip: 'Scan QR',
+                        //   onPressed: () {},
+                        // ),
                         IconButton(
                           icon: const Icon(
                             Icons.notifications_outlined,
@@ -100,6 +101,29 @@ class _WalletHomeState extends State<WalletHome> {
                           ),
                           tooltip: 'Notifications',
                           onPressed: () {},
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => NetworkPage(),
+                              ),
+                            );
+                          },
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Network',
+                                style: TextStyle(fontSize: 14),
+                              ),
+                              Icon(
+                                Icons.arrow_drop_down,
+                                size: 24,
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     )
