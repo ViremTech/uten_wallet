@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uten_wallet/core/constant/constant.dart';
 import 'package:uten_wallet/features/onboarding/presentaion/widget/button_widget.dart';
+import 'package:uten_wallet/features/wallet/data/model/wallet_model.dart';
 import 'package:uten_wallet/features/wallet/domain/entity/wallet_entity.dart';
 import 'package:uten_wallet/features/wallet/presentaion/bloc/get_all_wallet/wallet_bloc.dart';
 import 'package:uten_wallet/features/wallet/presentaion/bloc/get_all_wallet/wallet_state.dart';
@@ -12,7 +13,8 @@ import 'package:uten_wallet/features/wallet/presentaion/widget/listtile_widget.d
 import '../bloc/get_all_wallet/wallet_event.dart';
 
 class WalletsPage extends StatefulWidget {
-  const WalletsPage({super.key});
+  final WalletModel model;
+  const WalletsPage({super.key, required this.model});
 
   @override
   State<WalletsPage> createState() => _WalletsPageState();
@@ -113,7 +115,7 @@ class _WalletsPageState extends State<WalletsPage> {
                     child: ButtonWidget(
                       paddng: 8,
                       onPressed: () {
-                        _showModalBottomSheet(context);
+                        _showModalBottomSheet(context, widget.model);
                       },
                       color: primaryColor,
                       text: 'Add Wallet',
@@ -136,7 +138,7 @@ class _WalletsPageState extends State<WalletsPage> {
   }
 }
 
-void _showModalBottomSheet(BuildContext context) {
+void _showModalBottomSheet(BuildContext context, WalletModel model) {
   showModalBottomSheet(
     isScrollControlled: true,
     context: context,
@@ -182,7 +184,9 @@ void _showModalBottomSheet(BuildContext context) {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => AddExistingWallet(),
+                      builder: (context) => AddExistingWallet(
+                        model: model,
+                      ),
                     ),
                   );
                 },

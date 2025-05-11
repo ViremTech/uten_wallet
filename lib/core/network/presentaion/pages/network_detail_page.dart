@@ -2,8 +2,15 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uten_wallet/core/network/domain/entity/network_entity.dart';
 import 'package:uten_wallet/core/network/presentaion/pages/network_edit_page.dart';
+import 'package:uten_wallet/core/widget/snackbar.dart';
+import 'package:uten_wallet/features/wallet/data/model/wallet_model.dart';
+import 'package:uten_wallet/features/wallet/presentaion/bloc/get_all_wallet/wallet_bloc.dart';
+
+import '../../../../features/wallet/data/data_source/wallet_local_storage.dart';
+import '../../../../features/wallet/presentaion/bloc/update_wallet_network/update_wallet_network_bloc.dart';
 
 class NetworkDetailPage extends StatelessWidget {
   final NetworkEntity network;
@@ -107,14 +114,25 @@ class NetworkDetailPage extends StatelessWidget {
 
             // Select network button
             if (onNetworkSelected != null)
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: onNetworkSelected,
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+              BlocListener<WalletNetworkBloc, WalletNetworkState>(
+                listener: (context, state) {
+                  if (state is WalletNetworkUpdated) {
+                    mySnackBar('Network Updated Successfully', context);
+                  }
+                },
+                child: SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      context
+                          .read<WalletNetworkBloc>()
+                          .add(UpdateWalletNetworkEvent(network.currencyName));
+                    },
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                    child: const Text('Select This Network'),
                   ),
-                  child: const Text('Select This Network'),
                 ),
               ),
           ],

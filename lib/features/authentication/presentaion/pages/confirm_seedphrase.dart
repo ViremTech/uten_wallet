@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uten_wallet/core/constant/constant.dart';
+import 'package:uten_wallet/features/wallet/data/model/wallet_model.dart';
 import 'package:uten_wallet/features/wallet/presentaion/bloc/generate_wallet_bloc/generate_wallet_bloc.dart';
 import 'package:uten_wallet/features/wallet/presentaion/pages/wallet_home.dart';
 
@@ -155,7 +156,8 @@ class _ConfirmSeedState extends State<ConfirmSeed> {
                     Navigator.pushAndRemoveUntil(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => WalletHome(wallet: state.wallet),
+                        builder: (context) =>
+                            WalletHome(wallet: state.wallet as WalletModel),
                       ),
                       (route) => false,
                     );

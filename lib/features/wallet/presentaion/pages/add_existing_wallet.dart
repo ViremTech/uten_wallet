@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:uten_wallet/core/constant/constant.dart';
 import 'package:uten_wallet/features/onboarding/presentaion/widget/button_widget.dart';
+import 'package:uten_wallet/features/wallet/data/model/wallet_model.dart';
 import 'package:uten_wallet/features/wallet/presentaion/pages/create_with_seed_phrase_page.dart';
 import 'package:uten_wallet/features/wallet/presentaion/widget/another_listtile_widget.dart';
 
 import 'create_wallet_privatekey_page.dart';
 
 class AddExistingWallet extends StatelessWidget {
-  const AddExistingWallet({super.key});
+  final WalletModel model;
+  const AddExistingWallet({super.key, required this.model});
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +53,9 @@ class AddExistingWallet extends StatelessWidget {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => CreateWalletWithPrivateKey(),
+                    builder: (context) => CreateWalletWithPrivateKey(
+                      model: model,
+                    ),
                   ),
                 );
               },

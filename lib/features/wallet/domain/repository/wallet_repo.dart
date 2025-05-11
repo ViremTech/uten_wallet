@@ -19,4 +19,5 @@ abstract class WalletRepo {
   Future<Either<Failure, void>> deleteWallet(String walletId);
   Future<Either<Failure, void>> updateWallet(WalletEntity wallet);
   Future<Either<Failure, WalletEntity?>> getActiveWallet();
+  Future<Either<Failure, void>> updateWalletNetwork(String network);
 }

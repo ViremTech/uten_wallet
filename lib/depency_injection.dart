@@ -44,11 +44,13 @@ import 'package:uten_wallet/features/wallet/presentaion/bloc/get_all_wallet/wall
 import 'package:uten_wallet/features/wallet/presentaion/bloc/get_total_balance_bloc/get_total_balance_bloc.dart';
 import 'package:uten_wallet/features/wallet/presentaion/bloc/import_wallet_bloc/import_wallet_bloc.dart';
 import 'package:uten_wallet/features/wallet/presentaion/bloc/mnemonic_bloc/generate_mnemonic_bloc.dart';
+import 'package:uten_wallet/features/wallet/presentaion/bloc/update_wallet_network/update_wallet_network_bloc.dart';
 
 import 'core/network/domain/usecase/addnewtwork.dart';
 import 'core/network/domain/usecase/deletenetwork.dart';
 import 'core/network/domain/usecase/getnetworkbyid.dart';
 import 'core/network/domain/usecase/updatenetwork.dart';
+import 'features/wallet/domain/usecase/update_wallet_network.dart';
 
 final sl = GetIt.instance;
 final internet = InternetConnectionChecker.instance;
@@ -59,12 +61,11 @@ void initDependency() {
       () => const FlutterSecureStorage());
   sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(internet));
   sl.registerLazySingleton<http.Client>(() => http.Client());
-
+  _evmChain();
   _initAuth();
   _wallet();
   _initOnboarding();
   _persitLgoin();
-  _evmChain();
 }
 
 void _initAuth() {
@@ -92,14 +93,16 @@ void _wallet() {
   sl
     ..registerSingleton<WalletLocalStorage>(
         WalletLocalStorageImpl(storage: sl<FlutterSecureStorage>()))
-    ..registerSingleton<WalletRepo>(
-        WalletRepoImpl(localStorage: sl<WalletLocalStorage>()))
+    ..registerSingleton<WalletRepo>(WalletRepoImpl(
+        localStorage: sl<WalletLocalStorage>(),
+        evmChainLocalDataSource: sl<EvmChainLocalDataSource>()))
     ..registerFactory(() => GenerateMnemonic(sl<WalletRepo>()))
     ..registerFactory(() => DeleteWallet(sl<WalletRepo>()))
     ..registerFactory(() => GenerateWallet(sl<WalletRepo>()))
     ..registerFactory(() => GetActiveWallet(sl<WalletRepo>()))
     ..registerFactory(() => GetAllWallets(sl<WalletRepo>()))
     ..registerFactory(() => GetTotalBalance(sl<WalletRepo>()))
+    ..registerFactory(() => UpdateWalletNetwork(sl<WalletRepo>()))
     ..registerFactory(() => ImportWallet(sl<WalletRepo>()))
     ..registerFactory(() => SetActiveWallet(sl<WalletRepo>()))
     ..registerFactory(() => UpdateWallet(sl<WalletRepo>()))
@@ -109,7 +112,8 @@ void _wallet() {
     ..registerFactory(() => GenerateWalletBloc(sl<GenerateWallet>()))
     ..registerFactory(
         () => GetActiveWalletBloc(getActiveWallet: sl<GetActiveWallet>()))
-    ..registerFactory(() => WalletBloc(sl<GetAllWallets>()));
+    ..registerFactory(() => WalletBloc(sl<GetAllWallets>()))
+    ..registerFactory(() => WalletNetworkBloc(sl<UpdateWalletNetwork>()));
 }
 
 void _initOnboarding() {

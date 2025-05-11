@@ -6,7 +6,7 @@ class WalletEntity {
   final String id;
   final String address;
   final String name;
-  final String network;
+  String network = 'ethereum';
   final WalletType walletType;
   final bool isActive;
   final DateTime createdAt;

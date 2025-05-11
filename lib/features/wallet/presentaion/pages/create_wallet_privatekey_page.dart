@@ -2,6 +2,7 @@ import 'package:convert/convert.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uten_wallet/features/authentication/presentaion/bloc/auth_bloc.dart';
+import 'package:uten_wallet/features/wallet/data/model/wallet_model.dart';
 import 'package:uten_wallet/features/wallet/presentaion/bloc/import_wallet_bloc/import_wallet_bloc.dart';
 import 'package:uten_wallet/features/wallet/presentaion/pages/wallet_home.dart';
 import '../../../authentication/presentaion/widget/seed_phrase_field.dart';
@@ -12,7 +13,8 @@ import 'package:bip39/bip39.dart' as bip39;
 import '../widget/import_private_key_field.dart';
 
 class CreateWalletWithPrivateKey extends StatefulWidget {
-  const CreateWalletWithPrivateKey({super.key});
+  final WalletModel model;
+  const CreateWalletWithPrivateKey({super.key, required this.model});
 
   @override
   State<CreateWalletWithPrivateKey> createState() =>
@@ -118,7 +120,7 @@ class _CreateWalletWithPrivateKeyState
                               ImportWalletRequested(
                                 name: 'Wallet 1',
                                 privateKey: privateKey,
-                                network: 'ethereum',
+                                network: widget.model.network,
                               ),
                             );
                       } else if (state is AuthError) {
@@ -147,7 +149,7 @@ class _CreateWalletWithPrivateKeyState
                             context,
                             MaterialPageRoute(
                                 builder: (context) => WalletHome(
-                                      wallet: state.wallet,
+                                      wallet: state.wallet as WalletModel,
                                     ),
                                 settings: RouteSettings(name: '/wallet_home')),
                             (route) => false);

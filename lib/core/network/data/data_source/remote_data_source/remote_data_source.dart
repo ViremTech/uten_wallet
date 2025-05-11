@@ -1,5 +1,3 @@
-// lib/core/network/data/data_source/remote_data_source/remote_data_source.dart
-
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
@@ -8,8 +6,6 @@ import 'package:uten_wallet/core/network/data/model/network_model.dart';
 import '../../../../error/exception.dart';
 
 abstract class EvmChainRemoteDataSource {
-  /// Fetches a list of EVM chains from the remote API
-  /// Throws a [ServerException] for all error codes
   Future<List<NetworkModel>> getEvmChains();
 }
 
@@ -25,7 +21,11 @@ class EvmChainRemoteDataSourceImpl implements EvmChainRemoteDataSource {
   @override
   Future<List<NetworkModel>> getEvmChains() async {
     try {
-      final response = await client.get(Uri.parse(apiUrl));
+      final response = await client.get(Uri.parse(apiUrl)).timeout(
+            const Duration(
+              seconds: 5,
+            ),
+          );
 
       if (response.statusCode == 200) {
         final List<dynamic> jsonList = json.decode(response.body);
@@ -59,7 +59,6 @@ class EvmChainRemoteDataSourceImpl implements EvmChainRemoteDataSource {
   }
 
   String _getLogoUrl(int chainId) {
-    // You can use a service like Chainlist to get logos
     return 'https://icons.llamao.fi/icons/chains/rsz_$chainId.jpg';
   }
 

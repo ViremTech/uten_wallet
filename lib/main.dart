@@ -11,6 +11,7 @@ import 'package:uten_wallet/features/wallet/presentaion/bloc/get_all_wallet/wall
 import 'package:uten_wallet/features/wallet/presentaion/bloc/get_total_balance_bloc/get_total_balance_bloc.dart';
 import 'package:uten_wallet/features/wallet/presentaion/bloc/import_wallet_bloc/import_wallet_bloc.dart';
 import 'package:uten_wallet/features/wallet/presentaion/bloc/mnemonic_bloc/generate_mnemonic_bloc.dart';
+import 'package:uten_wallet/features/wallet/presentaion/bloc/update_wallet_network/update_wallet_network_bloc.dart';
 import 'package:uten_wallet/init_page.dart';
 import 'features/onboarding/presentaion/bloc/onboarding_bloc.dart';
 
@@ -34,6 +35,9 @@ void main() {
       ),
       BlocProvider(
         create: (context) => sl<WalletBloc>(),
+      ),
+      BlocProvider(
+        create: (context) => sl<WalletNetworkBloc>(),
       ),
       BlocProvider(
         create: (context) => sl<GenerateMnemonicBloc>(),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uten_wallet/features/authentication/presentaion/widget/password_field.dart';
 import 'package:uten_wallet/features/onboarding/presentaion/widget/button_widget.dart';
+import 'package:uten_wallet/features/wallet/data/model/wallet_model.dart';
 import 'package:uten_wallet/features/wallet/presentaion/bloc/get_active_wallet/get_active_wallet_bloc.dart';
 import 'package:uten_wallet/features/wallet/presentaion/pages/wallet_home.dart';
 
@@ -85,7 +86,7 @@ class _LoginPageState extends State<LoginPage> {
                           context,
                           MaterialPageRoute(
                             builder: (context) => WalletHome(
-                              wallet: state.wallet!,
+                              wallet: state.wallet! as WalletModel,
                             ),
                           ),
                         );

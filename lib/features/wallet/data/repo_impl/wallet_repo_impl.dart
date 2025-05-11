@@ -2,7 +2,7 @@ import 'package:convert/convert.dart';
 import 'package:dartz/dartz.dart';
 import 'package:http/http.dart' as http;
 import 'package:uten_wallet/core/error/failure.dart';
-import 'package:uten_wallet/core/network/network_config.dart';
+
 import 'package:uten_wallet/features/wallet/data/data_source/wallet_local_storage.dart';
 import 'package:uten_wallet/features/wallet/data/model/wallet_model.dart';
 import 'package:uten_wallet/features/wallet/domain/entity/wallet_entity.dart';
@@ -12,10 +12,17 @@ import 'package:bip32/bip32.dart' as bip32;
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:web3dart/web3dart.dart';
 
+import '../../../../core/network/data/data_source/local_data_source/local_data_source.dart';
+import '../../../../core/network/data/model/network_model.dart';
+
 class WalletRepoImpl implements WalletRepo {
   final WalletLocalStorage localStorage;
+  final EvmChainLocalDataSource evmChainLocalDataSource;
 
-  WalletRepoImpl({required this.localStorage});
+  WalletRepoImpl({
+    required this.localStorage,
+    required this.evmChainLocalDataSource,
+  });
 
   @override
   Future<Either<Failure, String>> generateMnemonic() async {
@@ -34,6 +41,8 @@ class WalletRepoImpl implements WalletRepo {
     required String name,
     required String network,
   }) async {
+    List<NetworkModel> cacheEvmChains =
+        await evmChainLocalDataSource.getCachedEvmChains();
     try {
       if (!bip39.validateMnemonic(mnemonic)) {
         return left(Failure("Invalid mnemonic"));
@@ -51,7 +60,7 @@ class WalletRepoImpl implements WalletRepo {
       final credentials = EthPrivateKey.fromHex(hexPrivateKey);
       final address = credentials.address;
 
-      if (!supportedNetworks.containsKey(network)) {
+      if (cacheEvmChains.any((model) => model.id.contains(network))) {
         return Left(Failure("Unsupported network"));
       }
 
@@ -81,18 +90,23 @@ class WalletRepoImpl implements WalletRepo {
 
   @override
   Future<Either<Failure, double>> getTotalBalance() async {
+    List<NetworkModel> cacheEvmChains =
+        await evmChainLocalDataSource.getCachedEvmChains();
     try {
       final wallet = await localStorage.getActiveWallet();
       if (wallet == null) {
         return left(Failure('No active wallet found'));
       }
 
-      final networkConfig = supportedNetworks[wallet.network];
-      if (networkConfig == null) {
+      final rpcUrls = cacheEvmChains
+          .firstWhere((network) => network.id == wallet.network)
+          .rpc
+          .first;
+      if (rpcUrls.isNotEmpty) {
         return left(Failure('Unsupported network'));
       }
 
-      final client = Web3Client(networkConfig.rpcUrl, http.Client());
+      final client = Web3Client(rpcUrls, http.Client());
       final address = EthereumAddress.fromHex(wallet.address);
       final ethBalance = await client.getBalance(address);
       BigInt totalBalance = ethBalance.getInWei;
@@ -145,8 +159,10 @@ class WalletRepoImpl implements WalletRepo {
     required String name,
     required String network,
   }) async {
+    List<NetworkModel> cacheEvmChains =
+        await evmChainLocalDataSource.getCachedEvmChains();
     try {
-      if (!supportedNetworks.containsKey(network)) {
+      if (cacheEvmChains.any((model) => model.id.contains(network))) {
         return Left(Failure("Unsupported network"));
       }
 
@@ -189,6 +205,16 @@ class WalletRepoImpl implements WalletRepo {
   Future<Either<Failure, void>> updateWallet(WalletEntity wallet) async {
     try {
       await localStorage.updateWallet(WalletModel.fromEntity(wallet));
+      return right(null);
+    } catch (e) {
+      return left(Failure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> updateWalletNetwork(String network) async {
+    try {
+      await localStorage.updateNetwork(network);
       return right(null);
     } catch (e) {
       return left(Failure(e.toString()));

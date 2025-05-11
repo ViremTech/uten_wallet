@@ -12,6 +12,7 @@ abstract class WalletLocalStorage {
   Future<void> deleteWallet(String walletId);
   Future<void> updateWallet(WalletModel wallet);
   Future<WalletModel?> getActiveWallet();
+  Future<void> updateNetwork(String network);
 }
 
 class WalletLocalStorageImpl implements WalletLocalStorage {
@@ -84,5 +85,11 @@ class WalletLocalStorageImpl implements WalletLocalStorage {
   @override
   Future<void> updateWallet(WalletModel wallet) async {
     await saveWallet(wallet);
+  }
+
+  @override
+  Future<void> updateNetwork(String network) async {
+    final wallet = await getActiveWallet();
+    await updateWallet(wallet!.copyWith(network: network));
   }
 }

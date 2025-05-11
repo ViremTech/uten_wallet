@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:uten_wallet/core/constant/constant.dart';
 import 'package:uten_wallet/core/network/presentaion/pages/network_page.dart';
 import 'package:uten_wallet/features/onboarding/presentaion/widget/button_widget.dart';
+import 'package:uten_wallet/features/wallet/data/model/wallet_model.dart';
 import 'package:uten_wallet/features/wallet/domain/entity/wallet_entity.dart';
 import 'package:uten_wallet/features/wallet/presentaion/pages/receieve_page.dart';
 import 'package:uten_wallet/features/wallet/presentaion/pages/wallets_page.dart';
@@ -11,7 +12,7 @@ import 'package:uten_wallet/features/wallet/presentaion/widget/address_widget.da
 import '../../../../core/util/truncate_address.dart';
 
 class WalletHome extends StatefulWidget {
-  final WalletEntity wallet;
+  final WalletModel wallet;
   const WalletHome({super.key, required this.wallet});
 
   @override
@@ -44,7 +45,9 @@ class _WalletHomeState extends State<WalletHome> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => WalletsPage(),
+                            builder: (context) => WalletsPage(
+                              model: widget.wallet,
+                            ),
                           ),
                         );
                       },
@@ -63,9 +66,17 @@ class _WalletHomeState extends State<WalletHome> {
                             ),
                           ),
                           const SizedBox(width: 8),
-                          Text(
-                            widget.wallet.name,
-                            style: Theme.of(context).textTheme.bodyMedium,
+                          Column(
+                            children: [
+                              Text(
+                                widget.wallet.name,
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                              Text(
+                                widget.wallet.network,
+                                style: Theme.of(context).textTheme.labelMedium,
+                              ),
+                            ],
                           ),
                           const Icon(Icons.arrow_drop_down),
                         ],
