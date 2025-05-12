@@ -2,7 +2,6 @@ import 'package:convert/convert.dart';
 import 'package:dartz/dartz.dart';
 import 'package:http/http.dart' as http;
 import 'package:uten_wallet/core/error/failure.dart';
-
 import 'package:uten_wallet/features/wallet/data/data_source/wallet_local_storage.dart';
 import 'package:uten_wallet/features/wallet/data/model/wallet_model.dart';
 import 'package:uten_wallet/features/wallet/domain/entity/wallet_entity.dart';
@@ -11,7 +10,6 @@ import 'package:uuid/uuid.dart';
 import 'package:bip32/bip32.dart' as bip32;
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:web3dart/web3dart.dart';
-
 import '../../../../core/network/data/data_source/local_data_source/local_data_source.dart';
 import '../../../../core/network/data/model/network_model.dart';
 
@@ -60,7 +58,7 @@ class WalletRepoImpl implements WalletRepo {
       final credentials = EthPrivateKey.fromHex(hexPrivateKey);
       final address = credentials.address;
 
-      if (cacheEvmChains.any((model) => model.id.contains(network))) {
+      if (!cacheEvmChains.any((model) => model.id.contains(network))) {
         return Left(Failure("Unsupported network"));
       }
 
@@ -102,7 +100,7 @@ class WalletRepoImpl implements WalletRepo {
           .firstWhere((network) => network.id == wallet.network)
           .rpc
           .first;
-      if (rpcUrls.isNotEmpty) {
+      if (rpcUrls.isEmpty) {
         return left(Failure('Unsupported network'));
       }
 
@@ -162,7 +160,7 @@ class WalletRepoImpl implements WalletRepo {
     List<NetworkModel> cacheEvmChains =
         await evmChainLocalDataSource.getCachedEvmChains();
     try {
-      if (cacheEvmChains.any((model) => model.id.contains(network))) {
+      if (!cacheEvmChains.any((model) => model.id.contains(network))) {
         return Left(Failure("Unsupported network"));
       }
 

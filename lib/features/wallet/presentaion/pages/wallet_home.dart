@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uten_wallet/core/constant/constant.dart';
 import 'package:uten_wallet/core/network/presentaion/pages/network_page.dart';
 import 'package:uten_wallet/features/onboarding/presentaion/widget/button_widget.dart';
 import 'package:uten_wallet/features/wallet/data/model/wallet_model.dart';
-import 'package:uten_wallet/features/wallet/domain/entity/wallet_entity.dart';
+
 import 'package:uten_wallet/features/wallet/presentaion/pages/receieve_page.dart';
 import 'package:uten_wallet/features/wallet/presentaion/pages/wallets_page.dart';
 import 'package:uten_wallet/features/wallet/presentaion/widget/Icon_text_widget.dart';
 import 'package:uten_wallet/features/wallet/presentaion/widget/address_widget.dart';
 
 import '../../../../core/util/truncate_address.dart';
+import '../bloc/get_active_wallet/get_active_wallet_bloc.dart';
 
 class WalletHome extends StatefulWidget {
   final WalletModel wallet;
@@ -23,6 +25,13 @@ class _WalletHomeState extends State<WalletHome> {
   bool hasToken = false;
   bool hasNfts = false;
   bool hasDefi = false;
+
+  Future<void> onRefresh() async {
+    context.read<GetActiveWalletBloc>().add(LoadActiveWallet());
+    await Future.delayed(
+        const Duration(seconds: 1)); // simulate refresh duration
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

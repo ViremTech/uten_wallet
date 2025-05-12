@@ -1,5 +1,3 @@
-// lib/core/network/presentaion/pages/network_detail_page.dart
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -7,132 +5,146 @@ import 'package:uten_wallet/core/network/domain/entity/network_entity.dart';
 import 'package:uten_wallet/core/network/presentaion/pages/network_edit_page.dart';
 import 'package:uten_wallet/core/widget/snackbar.dart';
 import 'package:uten_wallet/features/wallet/data/model/wallet_model.dart';
-import 'package:uten_wallet/features/wallet/presentaion/bloc/get_all_wallet/wallet_bloc.dart';
-
-import '../../../../features/wallet/data/data_source/wallet_local_storage.dart';
+import 'package:uten_wallet/features/wallet/presentaion/bloc/get_active_wallet/get_active_wallet_bloc.dart';
+import 'package:uten_wallet/features/wallet/presentaion/pages/wallet_home.dart';
 import '../../../../features/wallet/presentaion/bloc/update_wallet_network/update_wallet_network_bloc.dart';
 
-class NetworkDetailPage extends StatelessWidget {
+class NetworkDetailPage extends StatefulWidget {
   final NetworkEntity network;
   final Function()? onNetworkSelected;
 
   const NetworkDetailPage({
-    Key? key,
+    super.key,
     required this.network,
     this.onNetworkSelected,
-  }) : super(key: key);
+  });
+
+  @override
+  State<NetworkDetailPage> createState() => _NetworkDetailPageState();
+}
+
+class _NetworkDetailPageState extends State<NetworkDetailPage> {
+  bool _snackBarShown = false;
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(network.name),
-        actions: [
-          if (network.isEditable)
-            IconButton(
-              icon: const Icon(Icons.edit),
-              onPressed: () {
-                Navigator.of(context).push(
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<WalletNetworkBloc, WalletNetworkState>(
+          listener: (context, state) {
+            if (state is WalletNetworkUpdated) {
+              context.read<GetActiveWalletBloc>().add(LoadActiveWallet());
+            }
+          },
+        ),
+        BlocListener<GetActiveWalletBloc, ActiveWalletState>(
+          listener: (context, state) {
+            if (!_snackBarShown && state is ActiveWalletLoaded) {
+              _snackBarShown = true;
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                Navigator.pushReplacement(
+                  context,
                   MaterialPageRoute(
-                    builder: (context) => NetworkEditPage(network: network),
+                    builder: (context) =>
+                        WalletHome(wallet: state.wallet as WalletModel),
                   ),
                 );
-              },
-            ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Network banner section
-            Card(
-              margin: EdgeInsets.zero,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    _buildNetworkLogo(context),
-                    const SizedBox(height: 16),
-                    Text(
-                      network.name,
-                      style: Theme.of(context).textTheme.headlineSmall,
+                mySnackBar('Network Updated Successfully', context);
+              });
+            }
+          },
+        ),
+      ],
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(widget.network.name),
+          actions: [
+            if (widget.network.isEditable)
+              IconButton(
+                icon: const Icon(Icons.edit),
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          NetworkEditPage(network: widget.network),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      network.shortName,
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    ),
-                    if (network.isTestnet)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8.0),
-                        child: Chip(
-                          label: const Text('Testnet'),
-                          backgroundColor: Colors.orange.withOpacity(0.2),
-                          labelStyle: const TextStyle(color: Colors.orange),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            // Technical details section
-            Text(
-              'Network Details',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 16),
-
-            _buildDetailItem(context, 'Chain ID', network.chainId.toString()),
-            _buildDetailItem(
-                context, 'Currency Symbol', network.currencySymbol),
-            _buildDetailItem(context, 'Currency Name', network.currencyName),
-            _buildDetailItem(context, 'Decimals', network.decimals.toString()),
-
-            const SizedBox(height: 24),
-
-            // URLs section
-            Text(
-              'URLs',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            const SizedBox(height: 16),
-
-            if (network.rpc.isNotEmpty)
-              for (var rpc in network.rpc)
-                _buildCopyableItem(context, 'RPC URL', rpc),
-
-            if (network.blockExplorerUrl.isNotEmpty)
-              _buildCopyableItem(
-                  context, 'Block Explorer', network.blockExplorerUrl),
-
-            const SizedBox(height: 32),
-
-            // Select network button
-            if (onNetworkSelected != null)
-              BlocListener<WalletNetworkBloc, WalletNetworkState>(
-                listener: (context, state) {
-                  if (state is WalletNetworkUpdated) {
-                    mySnackBar('Network Updated Successfully', context);
-                  }
+                  );
                 },
-                child: SizedBox(
+              ),
+          ],
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildNetworkBanner(),
+              const SizedBox(height: 24),
+              _buildSectionTitle('Network Details'),
+              _buildDetailItem('Chain ID', widget.network.chainId.toString()),
+              _buildDetailItem(
+                  'Currency Symbol', widget.network.currencySymbol),
+              _buildDetailItem('Currency Name', widget.network.currencyName),
+              _buildDetailItem('Decimals', widget.network.decimals.toString()),
+              const SizedBox(height: 24),
+              _buildSectionTitle('URLs'),
+              ...(widget.network.rpc ?? []).map(
+                (rpc) => _buildCopyableItem('RPC URL', rpc),
+              ),
+              if ((widget.network.blockExplorerUrl ?? '').isNotEmpty)
+                _buildCopyableItem(
+                    'Block Explorer', widget.network.blockExplorerUrl!),
+              const SizedBox(height: 32),
+              if (widget.onNetworkSelected != null)
+                SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () {
-                      context
-                          .read<WalletNetworkBloc>()
-                          .add(UpdateWalletNetworkEvent(network.currencyName));
+                      context.read<WalletNetworkBloc>().add(
+                            UpdateWalletNetworkEvent(
+                              widget.network.id,
+                            ),
+                          );
                     },
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
                     child: const Text('Select This Network'),
                   ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNetworkBanner() {
+    final network = widget.network;
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            _buildNetworkLogo(),
+            const SizedBox(height: 16),
+            Text(
+              network.name,
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              network.shortName,
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+            if (network.isTestnet)
+              Padding(
+                padding: const EdgeInsets.only(top: 8.0),
+                child: Chip(
+                  label: const Text('Testnet'),
+                  backgroundColor: Colors.orange.withOpacity(0.2),
+                  labelStyle: const TextStyle(color: Colors.orange),
                 ),
               ),
           ],
@@ -141,7 +153,8 @@ class NetworkDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildNetworkLogo(BuildContext context) {
+  Widget _buildNetworkLogo() {
+    final network = widget.network;
     return Container(
       width: 80,
       height: 80,
@@ -166,7 +179,14 @@ class NetworkDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailItem(BuildContext context, String label, String value) {
+  Widget _buildSectionTitle(String title) {
+    return Text(
+      title,
+      style: Theme.of(context).textTheme.titleLarge,
+    );
+  }
+
+  Widget _buildDetailItem(String label, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
       child: Row(
@@ -193,7 +213,7 @@ class NetworkDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildCopyableItem(BuildContext context, String label, String value) {
+  Widget _buildCopyableItem(String label, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
       child: Row(
