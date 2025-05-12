@@ -88,12 +88,12 @@ class _NetworkDetailPageState extends State<NetworkDetailPage> {
               _buildDetailItem('Decimals', widget.network.decimals.toString()),
               const SizedBox(height: 24),
               _buildSectionTitle('URLs'),
-              ...(widget.network.rpc ?? []).map(
+              ...(widget.network.rpc).map(
                 (rpc) => _buildCopyableItem('RPC URL', rpc),
               ),
-              if ((widget.network.blockExplorerUrl ?? '').isNotEmpty)
+              if ((widget.network.blockExplorerUrl).isNotEmpty)
                 _buildCopyableItem(
-                    'Block Explorer', widget.network.blockExplorerUrl!),
+                    'Block Explorer', widget.network.blockExplorerUrl),
               const SizedBox(height: 32),
               if (widget.onNetworkSelected != null)
                 SizedBox(
