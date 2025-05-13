@@ -186,7 +186,6 @@ class _ConfirmSeedState extends State<ConfirmSeed> {
                                               GenerateWalletRequested(
                                                 mnemonic: widget.correctSeed
                                                     .join(" "),
-                                                name: 'Wallet 1',
                                                 network: 'ethereum',
                                               ),
                                             );

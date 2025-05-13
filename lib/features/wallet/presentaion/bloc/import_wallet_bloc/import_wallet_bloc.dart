@@ -15,7 +15,6 @@ class ImportWalletBloc extends Bloc<ImportWalletEvent, ImportWalletState> {
       emit(ImportWalletLoading());
       final result = await importWallet(ImportWalletParams(
         privateKey: event.privateKey,
-        name: event.name,
         network: event.network,
       ));
       result.fold(

@@ -7,12 +7,10 @@ import '../repository/wallet_repo.dart';
 
 class ImportWalletParams {
   final String privateKey;
-  final String name;
   final String network;
 
   ImportWalletParams({
     required this.privateKey,
-    required this.name,
     required this.network,
   });
 }
@@ -26,7 +24,6 @@ class ImportWallet extends Usecase<WalletEntity, ImportWalletParams> {
   Future<Either<Failure, WalletEntity>> call(ImportWalletParams params) {
     return repository.importWallet(
       privateKey: params.privateKey,
-      name: params.name,
       network: params.network,
     );
   }

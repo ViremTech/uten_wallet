@@ -5,7 +5,7 @@ enum WalletType { generated, imported, hardware }
 class WalletEntity {
   final String id;
   final String address;
-  final String name;
+  String name;
   String network = 'ethereum';
   final WalletType walletType;
   final bool isActive;

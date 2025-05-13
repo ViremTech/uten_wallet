@@ -5,7 +5,8 @@ import 'package:uten_wallet/features/authentication/presentaion/bloc/auth_bloc.d
 import 'package:uten_wallet/features/wallet/data/model/wallet_model.dart';
 import 'package:uten_wallet/features/wallet/presentaion/bloc/import_wallet_bloc/import_wallet_bloc.dart';
 import 'package:uten_wallet/features/wallet/presentaion/pages/wallet_home.dart';
-import '../../../authentication/presentaion/widget/seed_phrase_field.dart';
+import 'package:uten_wallet/features/wallet/presentaion/pages/wallets_page.dart';
+
 import '../../../onboarding/presentaion/widget/button_widget.dart';
 import 'package:bip32/bip32.dart' as bip32;
 import 'package:bip39/bip39.dart' as bip39;
@@ -26,25 +27,7 @@ class _CreateWalletWithPrivateKeyState
   final _formKey = GlobalKey<FormState>();
   final _privateKeyController = TextEditingController();
 
-  late String privateKey;
-
   bool _agreedToTerms = false;
-
-  String generatePrivate(String mnemonic) {
-    final seed = bip39.mnemonicToSeed(mnemonic);
-    final root = bip32.BIP32.fromSeed(seed);
-    final path = "m/44'/60'/0'/0/0";
-    final childKey = root.derivePath(path);
-    final privateKey = childKey.privateKey;
-    final hexPrivateKey = hex.encode(privateKey!);
-    return hexPrivateKey;
-  }
-
-  @override
-  void initState() {
-    privateKey = generatePrivate(_privateKeyController.text);
-    super.initState();
-  }
 
   @override
   void dispose() {
@@ -113,27 +96,6 @@ class _CreateWalletWithPrivateKeyState
               width: double.infinity,
               child: MultiBlocListener(
                 listeners: [
-                  BlocListener<AuthBloc, AuthState>(
-                    listener: (context, state) {
-                      if (state is AuthSuccess) {
-                        context.read<ImportWalletBloc>().add(
-                              ImportWalletRequested(
-                                name: 'Wallet 1',
-                                privateKey: privateKey,
-                                network: widget.model.network,
-                              ),
-                            );
-                      } else if (state is AuthError) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              state.message,
-                            ),
-                          ),
-                        );
-                      }
-                    },
-                  ),
                   BlocListener<ImportWalletBloc, ImportWalletState>(
                     listener: (context, state) {
                       if (state is ImportWalletSuccess) {
@@ -148,10 +110,9 @@ class _CreateWalletWithPrivateKeyState
                         Navigator.pushAndRemoveUntil(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => WalletHome(
-                                      wallet: state.wallet as WalletModel,
-                                    ),
-                                settings: RouteSettings(name: '/wallet_home')),
+                              builder: (context) => WalletsPage(
+                                  model: state.wallet as WalletModel),
+                            ),
                             (route) => false);
                       }
                       if (state is ImportWalletFailure) {
@@ -171,7 +132,16 @@ class _CreateWalletWithPrivateKeyState
                   padding: EdgeInsets.symmetric(vertical: 20),
                   child: ButtonWidget(
                     paddng: 16,
-                    onPressed: _isFormValid ? () {} : null,
+                    onPressed: _isFormValid
+                        ? () {
+                            context.read<ImportWalletBloc>().add(
+                                  ImportWalletRequested(
+                                    privateKey: _privateKeyController.text,
+                                    network: widget.model.network,
+                                  ),
+                                );
+                          }
+                        : null,
                     color: _isFormValid && _agreedToTerms
                         ? Colors.white
                         : Colors.grey[900],

@@ -10,7 +10,7 @@ class ImportSeedPhraseField extends StatefulWidget {
 }
 
 class _ImportSeedPhraseFieldState extends State<ImportSeedPhraseField> {
-  bool _obscure = true;
+  bool _obscure = false;
   String _actualText = '';
 
   void _handleChange(String value) {

@@ -14,7 +14,6 @@ class GenerateWalletBloc
       emit(GenerateWalletLoading());
       final result = await generateWallet(GenerateWalletParams(
         mnemonic: event.mnemonic,
-        name: event.name,
         network: event.network,
       ));
 

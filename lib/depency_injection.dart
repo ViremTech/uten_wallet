@@ -38,12 +38,15 @@ import 'package:uten_wallet/features/wallet/domain/usecase/get_total_balance.dar
 import 'package:uten_wallet/features/wallet/domain/usecase/import_wallet.dart';
 import 'package:uten_wallet/features/wallet/domain/usecase/set_active_wallet.dart';
 import 'package:uten_wallet/features/wallet/domain/usecase/update_wallet.dart';
+import 'package:uten_wallet/features/wallet/presentaion/bloc/delete_wallet/delete_wallet_bloc.dart';
 import 'package:uten_wallet/features/wallet/presentaion/bloc/generate_wallet_bloc/generate_wallet_bloc.dart';
 import 'package:uten_wallet/features/wallet/presentaion/bloc/get_active_wallet/get_active_wallet_bloc.dart';
 import 'package:uten_wallet/features/wallet/presentaion/bloc/get_all_wallet/wallet_bloc.dart';
 import 'package:uten_wallet/features/wallet/presentaion/bloc/get_total_balance_bloc/get_total_balance_bloc.dart';
 import 'package:uten_wallet/features/wallet/presentaion/bloc/import_wallet_bloc/import_wallet_bloc.dart';
 import 'package:uten_wallet/features/wallet/presentaion/bloc/mnemonic_bloc/generate_mnemonic_bloc.dart';
+import 'package:uten_wallet/features/wallet/presentaion/bloc/set_active_wallet/set_active_wallet_bloc.dart';
+
 import 'package:uten_wallet/features/wallet/presentaion/bloc/update_wallet_network/update_wallet_network_bloc.dart';
 
 import 'core/network/domain/usecase/addnewtwork.dart';
@@ -113,7 +116,10 @@ void _wallet() {
     ..registerFactory(
         () => GetActiveWalletBloc(getActiveWallet: sl<GetActiveWallet>()))
     ..registerFactory(() => WalletBloc(sl<GetAllWallets>()))
-    ..registerFactory(() => WalletNetworkBloc(sl<UpdateWalletNetwork>()));
+    ..registerFactory(() => WalletNetworkBloc(sl<UpdateWalletNetwork>()))
+    ..registerFactory(() => DeleteWalletBloc(sl<DeleteWallet>()))
+    ..registerFactory(() =>
+        SetMyActiveWalletBloc(setActiveWalletUseCase: sl<SetActiveWallet>()));
 }
 
 void _initOnboarding() {

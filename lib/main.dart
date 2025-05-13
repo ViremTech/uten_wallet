@@ -5,12 +5,15 @@ import 'package:uten_wallet/core/network/presentaion/bloc/evmchain_bloc.dart';
 import 'package:uten_wallet/core/theme/dart_theme.dart';
 import 'package:uten_wallet/depency_injection.dart';
 import 'package:uten_wallet/features/authentication/presentaion/bloc/auth_bloc.dart';
+import 'package:uten_wallet/features/wallet/presentaion/bloc/delete_wallet/delete_wallet_bloc.dart';
 import 'package:uten_wallet/features/wallet/presentaion/bloc/generate_wallet_bloc/generate_wallet_bloc.dart';
 import 'package:uten_wallet/features/wallet/presentaion/bloc/get_active_wallet/get_active_wallet_bloc.dart';
 import 'package:uten_wallet/features/wallet/presentaion/bloc/get_all_wallet/wallet_bloc.dart';
 import 'package:uten_wallet/features/wallet/presentaion/bloc/get_total_balance_bloc/get_total_balance_bloc.dart';
 import 'package:uten_wallet/features/wallet/presentaion/bloc/import_wallet_bloc/import_wallet_bloc.dart';
 import 'package:uten_wallet/features/wallet/presentaion/bloc/mnemonic_bloc/generate_mnemonic_bloc.dart';
+import 'package:uten_wallet/features/wallet/presentaion/bloc/set_active_wallet/set_active_wallet_bloc.dart';
+
 import 'package:uten_wallet/features/wallet/presentaion/bloc/update_wallet_network/update_wallet_network_bloc.dart';
 import 'package:uten_wallet/init_page.dart';
 import 'features/onboarding/presentaion/bloc/onboarding_bloc.dart';
@@ -37,6 +40,9 @@ void main() {
         create: (context) => sl<WalletBloc>(),
       ),
       BlocProvider(
+        create: (context) => sl<SetMyActiveWalletBloc>(),
+      ),
+      BlocProvider(
         create: (context) => sl<WalletNetworkBloc>(),
       ),
       BlocProvider(
@@ -53,6 +59,9 @@ void main() {
       ),
       BlocProvider(
         create: (context) => sl<GetActiveWalletBloc>(),
+      ),
+      BlocProvider(
+        create: (context) => sl<DeleteWalletBloc>(),
       ),
     ],
     child: MyApp(),

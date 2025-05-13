@@ -6,12 +6,10 @@ import 'package:uten_wallet/features/wallet/domain/repository/wallet_repo.dart';
 
 class GenerateWalletParams {
   final String mnemonic;
-  final String name;
   final String network;
 
   GenerateWalletParams({
     required this.mnemonic,
-    required this.name,
     required this.network,
   });
 }
@@ -25,7 +23,6 @@ class GenerateWallet extends Usecase<WalletEntity, GenerateWalletParams> {
   Future<Either<Failure, WalletEntity>> call(GenerateWalletParams params) {
     return repository.generateWallet(
       mnemonic: params.mnemonic,
-      name: params.name,
       network: params.network,
     );
   }

@@ -36,7 +36,6 @@ class WalletRepoImpl implements WalletRepo {
   @override
   Future<Either<Failure, WalletEntity>> generateWallet({
     required String mnemonic,
-    required String name,
     required String network,
   }) async {
     List<NetworkModel> cacheEvmChains =
@@ -45,8 +44,10 @@ class WalletRepoImpl implements WalletRepo {
       if (!bip39.validateMnemonic(mnemonic)) {
         return left(Failure("Invalid mnemonic"));
       }
-      final seed = bip39.mnemonicToSeed(mnemonic);
 
+      final index = await _getNextWalletIndex();
+
+      final seed = bip39.mnemonicToSeed(mnemonic);
       final root = bip32.BIP32.fromSeed(seed);
       final path = "m/44'/60'/0'/0/0";
       final childKey = root.derivePath(path);
@@ -54,6 +55,7 @@ class WalletRepoImpl implements WalletRepo {
       if (privateKey == null) {
         return Left(Failure("Private key derivation failed"));
       }
+
       final hexPrivateKey = hex.encode(privateKey);
       final credentials = EthPrivateKey.fromHex(hexPrivateKey);
       final address = credentials.address;
@@ -66,14 +68,14 @@ class WalletRepoImpl implements WalletRepo {
         mnemonic: mnemonic,
         id: const Uuid().v4(),
         address: address.hexEip55,
-        name: name,
+        name: 'Wallet $index',
         network: network,
         walletType: WalletType.generated,
         isActive: false,
         createdAt: DateTime.now(),
         privateKey: hexPrivateKey,
         path: path,
-        index: 0,
+        index: index,
         balance: BigInt.zero,
         tokens: [],
       );
@@ -154,7 +156,6 @@ class WalletRepoImpl implements WalletRepo {
   @override
   Future<Either<Failure, WalletEntity>> importWallet({
     required String privateKey,
-    required String name,
     required String network,
   }) async {
     List<NetworkModel> cacheEvmChains =
@@ -164,20 +165,22 @@ class WalletRepoImpl implements WalletRepo {
         return Left(Failure("Unsupported network"));
       }
 
+      final index = await _getNextWalletIndex();
+
       final credentials = EthPrivateKey.fromHex(privateKey);
       final address = credentials.address.hexEip55;
       final wallet = WalletModel(
         mnemonic: null,
         id: const Uuid().v4(),
         address: address,
-        name: name,
+        name: 'Wallet $index',
         network: network,
         walletType: WalletType.imported,
         isActive: false,
         createdAt: DateTime.now(),
         privateKey: privateKey,
         path: null,
-        index: null,
+        index: index,
         balance: BigInt.zero,
         tokens: [],
       );
@@ -217,5 +220,16 @@ class WalletRepoImpl implements WalletRepo {
     } catch (e) {
       return left(Failure(e.toString()));
     }
+  }
+
+  Future<int> _getNextWalletIndex() async {
+    final existingWallets = await localStorage.getAllWallets();
+    if (existingWallets.isEmpty) return 1;
+
+    final maxIndex = existingWallets
+        .map((w) => w.index ?? 0)
+        .reduce((a, b) => a > b ? a : b);
+
+    return maxIndex + 1;
   }
 }

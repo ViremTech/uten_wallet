@@ -217,7 +217,6 @@ class _ImportWalletState extends State<ImportWallet> {
                       if (state is AuthSuccess) {
                         context.read<ImportWalletBloc>().add(
                               ImportWalletRequested(
-                                name: 'Wallet 1',
                                 privateKey: privateKey,
                                 network: 'ethereum',
                               ),
