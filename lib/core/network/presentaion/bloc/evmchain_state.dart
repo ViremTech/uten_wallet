@@ -20,6 +20,15 @@ class EvmChainLoadedState extends EvmChainState {
   List<Object?> get props => [chains];
 }
 
+class EvmChainLoadedByIdState extends EvmChainState {
+  final NetworkEntity chain;
+
+  const EvmChainLoadedByIdState(this.chain);
+
+  @override
+  List<Object?> get props => [chain];
+}
+
 class EvmChainErrorState extends EvmChainState {
   final String message;
 

@@ -1,35 +1,63 @@
-class TokenEntity {
+// features/token/domain/entities/token_entity.dart
+import 'package:equatable/equatable.dart';
+
+class TokenEntity extends Equatable {
   final String id;
   final String name;
   final String symbol;
-  final String address;
+  final String contractAddress;
+  final int chainId; // Changed to int to match NetworkEntity
   final int decimals;
-  final BigInt balance;
-  final String network;
-  final int chainId;
+  final String logoURI;
   final bool isNative;
-  final double priceUsd;
-  final String? logoUrl;
-  final bool isCustom;
-  final DateTime updatedAt;
+  final BigInt balance;
 
-  TokenEntity({
+  const TokenEntity({
     required this.id,
     required this.name,
     required this.symbol,
-    required this.address,
-    required this.decimals,
-    required this.balance,
-    required this.network,
+    required this.contractAddress,
     required this.chainId,
-    required this.isNative,
-    required this.priceUsd,
-    this.logoUrl,
-    this.isCustom = false,
-    required this.updatedAt,
+    required this.decimals,
+    required this.logoURI,
+    this.isNative = false,
+    required this.balance,
   });
 
-  double get balanceInDecimal => balance / BigInt.from(10).pow(decimals);
+  @override
+  List<Object?> get props => [
+        id,
+        name,
+        symbol,
+        contractAddress,
+        chainId,
+        decimals,
+        logoURI,
+        isNative,
+        balance,
+      ];
 
-  double get totalValueUsd => balanceInDecimal * priceUsd;
+  TokenEntity copyWith({
+    String? id,
+    String? name,
+    String? symbol,
+    String? contractAddress,
+    int? chainId,
+    int? decimals,
+    String? logoURI,
+    bool? isNative,
+    BigInt? balance,
+  }) {
+    return TokenEntity(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      symbol: symbol ?? this.symbol,
+      contractAddress: contractAddress ?? this.contractAddress,
+      chainId: chainId ?? this.chainId,
+      decimals: decimals ?? this.decimals,
+      logoURI: logoURI ?? this.logoURI,
+      isNative: isNative ?? this.isNative,
+      balance: balance ?? this.balance,
+    );
+  }
 }

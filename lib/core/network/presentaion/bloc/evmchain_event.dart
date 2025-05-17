@@ -35,3 +35,11 @@ class DeleteNetworkEvent extends EvmChainEvent {
   @override
   List<Object?> get props => [networkId];
 }
+
+class GetNetworkById extends EvmChainEvent {
+  final String networkId;
+
+  const GetNetworkById({required this.networkId});
+  @override
+  List<Object?> get props => [networkId];
+}

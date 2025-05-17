@@ -340,6 +340,152 @@ class EvmChainLocalDataSourceImpl implements EvmChainLocalDataSource {
         isTestnet: false,
         isEditable: false,
       ),
+
+      // Fantom Mainnet
+      const NetworkModel(
+        id: 'fantom',
+        name: 'Fantom Mainnet',
+        shortName: 'FTM',
+        chainId: 250,
+        rpc: ['https://rpc.ftm.tools', 'https://fantom.publicnode.com'],
+        currencySymbol: 'FTM',
+        currencyName: 'Fantom',
+        decimals: 18,
+        logoUrl: 'https://icons.llamao.fi/icons/chains/rsz_250.jpg',
+        blockExplorerUrl: 'https://ftmscan.com',
+        isTestnet: false,
+        isEditable: false,
+      ),
+
+      // Cronos Mainnet
+      const NetworkModel(
+        id: 'cronos',
+        name: 'Cronos Mainnet',
+        shortName: 'CRO',
+        chainId: 25,
+        rpc: [
+          'https://evm.cronos.org',
+          'https://cronos.blockpi.network/v1/rpc/public'
+        ],
+        currencySymbol: 'CRO',
+        currencyName: 'Cronos',
+        decimals: 18,
+        logoUrl: 'https://icons.llamao.fi/icons/chains/rsz_25.jpg',
+        blockExplorerUrl: 'https://cronoscan.com',
+        isTestnet: false,
+        isEditable: false,
+      ),
+
+      // Klaytn Mainnet
+      const NetworkModel(
+        id: 'klaytn',
+        name: 'Klaytn Mainnet',
+        shortName: 'KLAY',
+        chainId: 8217,
+        rpc: [
+          'https://public-node-api.klaytnapi.com/v1/cypress',
+          'https://klaytn.blockpi.network/v1/rpc/public'
+        ],
+        currencySymbol: 'KLAY',
+        currencyName: 'Klaytn',
+        decimals: 18,
+        logoUrl: 'https://icons.llamao.fi/icons/chains/rsz_8217.jpg',
+        blockExplorerUrl: 'https://scope.klaytn.com',
+        isTestnet: false,
+        isEditable: false,
+      ),
+
+      // Celo Mainnet
+      const NetworkModel(
+        id: 'celo',
+        name: 'Celo Mainnet',
+        shortName: 'CELO',
+        chainId: 42220,
+        rpc: [
+          'https://forno.celo.org',
+          'https://celo.blockpi.network/v1/rpc/public'
+        ],
+        currencySymbol: 'CELO',
+        currencyName: 'Celo',
+        decimals: 18,
+        logoUrl: 'https://icons.llamao.fi/icons/chains/rsz_42220.jpg',
+        blockExplorerUrl: 'https://celoscan.io',
+        isTestnet: false,
+        isEditable: false,
+      ),
+
+      // Add testnets for the new networks if available
+      const NetworkModel(
+        id: 'fantom-testnet',
+        name: 'Fantom Testnet',
+        shortName: 'FTM',
+        chainId: 4002,
+        rpc: [
+          'https://rpc.testnet.fantom.network',
+          'https://fantom-testnet.public.blastapi.io'
+        ],
+        currencySymbol: 'FTM',
+        currencyName: 'Fantom',
+        decimals: 18,
+        logoUrl: 'https://icons.llamao.fi/icons/chains/rsz_4002.jpg',
+        blockExplorerUrl: 'https://testnet.ftmscan.com',
+        isTestnet: true,
+        isEditable: false,
+      ),
+
+      const NetworkModel(
+        id: 'cronos-testnet',
+        name: 'Cronos Testnet',
+        shortName: 'CRO',
+        chainId: 338,
+        rpc: [
+          'https://evm-t3.cronos.org',
+          'https://cronos-testnet-3.crypto.org:8545'
+        ],
+        currencySymbol: 'CRO',
+        currencyName: 'Cronos',
+        decimals: 18,
+        logoUrl: 'https://icons.llamao.fi/icons/chains/rsz_338.jpg',
+        blockExplorerUrl: 'https://testnet.cronoscan.com',
+        isTestnet: true,
+        isEditable: false,
+      ),
+
+      const NetworkModel(
+        id: 'klaytn-testnet',
+        name: 'Klaytn Testnet',
+        shortName: 'KLAY',
+        chainId: 1001,
+        rpc: [
+          'https://api.baobab.klaytn.net:8651',
+          'https://klaytn-baobab.blockpi.network/v1/rpc/public'
+        ],
+        currencySymbol: 'KLAY',
+        currencyName: 'Klaytn',
+        decimals: 18,
+        logoUrl: 'https://icons.llamao.fi/icons/chains/rsz_1001.jpg',
+        blockExplorerUrl: 'https://baobab.scope.klaytn.com',
+        isTestnet: true,
+        isEditable: false,
+      ),
+
+      const NetworkModel(
+        id: 'celo-testnet',
+        name: 'Celo Alfajores Testnet',
+        shortName: 'CELO',
+        chainId: 44787,
+        rpc: [
+          'https://alfajores-forno.celo-testnet.org',
+          'https://celo-alfajores.blockpi.network/v1/rpc/public'
+        ],
+        currencySymbol: 'CELO',
+        currencyName: 'Celo',
+        decimals: 18,
+        logoUrl: 'https://icons.llamao.fi/icons/chains/rsz_44787.jpg',
+        blockExplorerUrl: 'https://alfajores.celoscan.io',
+        isTestnet: true,
+        isEditable: false,
+      ),
     ];
   }
 }

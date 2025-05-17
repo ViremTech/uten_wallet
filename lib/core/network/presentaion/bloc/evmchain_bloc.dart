@@ -7,6 +7,7 @@ import '../../domain/entity/network_entity.dart';
 import '../../domain/usecase/addnewtwork.dart';
 import '../../domain/usecase/deletenetwork.dart';
 import '../../domain/usecase/getevmchainsusecase.dart';
+import '../../domain/usecase/getnetworkbyid.dart';
 import '../../domain/usecase/updatenetwork.dart';
 
 part 'evmchain_event.dart';
@@ -17,9 +18,11 @@ class EvmChainBloc extends Bloc<EvmChainEvent, EvmChainState> {
   final AddNetwork? addNetwork;
   final UpdateNetwork? updateNetwork;
   final DeleteNetwork? deleteNetwork;
+  final GetNetworkByIdUseCase? getNetworkByIdUseCase;
 
   EvmChainBloc(
-    this.getEvmChains, {
+    this.getEvmChains,
+    this.getNetworkByIdUseCase, {
     this.addNetwork,
     this.updateNetwork,
     this.deleteNetwork,
@@ -28,6 +31,7 @@ class EvmChainBloc extends Bloc<EvmChainEvent, EvmChainState> {
     on<AddNetworkEvent>(_onAddNetwork);
     on<UpdateNetworkEvent>(_onUpdateNetwork);
     on<DeleteNetworkEvent>(_onDeleteNetwork);
+    on<GetNetworkById>(_ongetNetworkById);
   }
 
   Future<void> _onLoadEvmChains(
@@ -40,6 +44,26 @@ class EvmChainBloc extends Bloc<EvmChainEvent, EvmChainState> {
     result.fold(
       (failure) => emit(EvmChainErrorState(_mapFailureToMessage(failure))),
       (chains) => emit(EvmChainLoadedState(chains)),
+    );
+  }
+
+  Future<void> _ongetNetworkById(
+    GetNetworkById event,
+    Emitter<EvmChainState> emit,
+  ) async {
+    if (getNetworkByIdUseCase == null) {
+      emit(const EvmChainErrorState(
+          'Get network by ID functionality not available'));
+      return;
+    }
+
+    emit(EvmChainLoadingState());
+    final result = await getNetworkByIdUseCase!(event.networkId);
+    result.fold(
+      (failure) => emit(EvmChainErrorState(_mapFailureToMessage(failure))),
+      (network) {
+        emit(EvmChainLoadedByIdState(network));
+      },
     );
   }
 

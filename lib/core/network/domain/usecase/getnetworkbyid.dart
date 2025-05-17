@@ -6,10 +6,10 @@ import '../../../usecase/usecase.dart';
 import '../entity/network_entity.dart';
 import '../repository/network_repo.dart';
 
-class GetNetworkById implements Usecase<NetworkEntity, String> {
+class GetNetworkByIdUseCase implements Usecase<NetworkEntity, String> {
   final EvmChainRepository repository;
 
-  GetNetworkById(this.repository);
+  GetNetworkByIdUseCase(this.repository);
 
   @override
   Future<Either<Failure, NetworkEntity>> call(String params) {

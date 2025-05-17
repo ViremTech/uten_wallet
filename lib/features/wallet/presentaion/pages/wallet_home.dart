@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uten_wallet/core/constant/constant.dart';
+
 import 'package:uten_wallet/core/network/presentaion/pages/network_page.dart';
 import 'package:uten_wallet/features/onboarding/presentaion/widget/button_widget.dart';
 import 'package:uten_wallet/features/wallet/data/model/wallet_model.dart';
-import 'package:uten_wallet/features/wallet/domain/usecase/get_active_wallet.dart';
+
 import 'package:uten_wallet/features/wallet/presentaion/pages/receieve_page.dart';
 import 'package:uten_wallet/features/wallet/presentaion/pages/wallets_page.dart';
 import 'package:uten_wallet/features/wallet/presentaion/widget/Icon_text_widget.dart';
 import 'package:uten_wallet/features/wallet/presentaion/widget/address_widget.dart';
+import '../../../../core/network/presentaion/bloc/evmchain_bloc.dart';
 import '../../../../core/util/truncate_address.dart';
+import '../../../token/presentaion/pages/token_page.dart';
 import '../bloc/get_active_wallet/get_active_wallet_bloc.dart';
 
 class WalletHome extends StatefulWidget {
@@ -24,6 +27,7 @@ class _WalletHomeState extends State<WalletHome> {
   bool hasToken = false;
   bool hasNfts = false;
   bool hasDefi = false;
+  late final myWalletNetwork;
 
   Future<void> onRefresh() async {
     context.read<GetActiveWalletBloc>().add(LoadActiveWallet());
@@ -44,7 +48,11 @@ class _WalletHomeState extends State<WalletHome> {
 
         if (state is ActiveWalletLoaded) {
           final wallet = state.wallet;
-
+          context.read<EvmChainBloc>().add(
+                GetNetworkById(
+                  networkId: wallet!.network,
+                ),
+              );
           return Scaffold(
             body: DefaultTabController(
               length: 3,
@@ -93,7 +101,7 @@ class _WalletHomeState extends State<WalletHome> {
                                         Column(
                                           children: [
                                             Text(
-                                              wallet!.name,
+                                              wallet.name,
                                               style: Theme.of(context)
                                                   .textTheme
                                                   .bodyMedium,
@@ -264,15 +272,37 @@ class _WalletHomeState extends State<WalletHome> {
                                               ),
                                             ],
                                           ),
-                                          Padding(
-                                            padding: const EdgeInsets.only(
-                                                bottom: 20),
-                                            child: ButtonWidget(
-                                              paddng: 0,
-                                              onPressed: () {},
-                                              color: primaryColor,
-                                              text: 'Add Cryto',
-                                              textColor: Colors.black,
+                                          BlocListener<EvmChainBloc,
+                                              EvmChainState>(
+                                            listener: (context, state) {
+                                              if (state
+                                                  is EvmChainLoadedByIdState) {
+                                                myWalletNetwork =
+                                                    state.chain.chainId;
+                                              }
+                                            },
+                                            child: Padding(
+                                              padding: const EdgeInsets.only(
+                                                  bottom: 20),
+                                              child: ButtonWidget(
+                                                paddng: 0,
+                                                onPressed: () {
+                                                  Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                      builder: (context) =>
+                                                          TokenSearchPage(
+                                                        walletId: wallet.id,
+                                                        chainId:
+                                                            myWalletNetwork,
+                                                      ),
+                                                    ),
+                                                  );
+                                                },
+                                                color: primaryColor,
+                                                text: 'Add Cryto',
+                                                textColor: Colors.black,
+                                              ),
                                             ),
                                           ),
                                         ],

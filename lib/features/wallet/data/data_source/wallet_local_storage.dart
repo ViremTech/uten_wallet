@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:uten_wallet/features/wallet/data/model/wallet_model.dart';
 
+import '../../../token/data/model/token_model.dart';
+
 abstract class WalletLocalStorage {
   Future<void> saveMnemonic(String mnemonic);
   Future<String?> getMnemonic();
@@ -13,6 +15,10 @@ abstract class WalletLocalStorage {
   Future<void> updateWallet(WalletModel wallet);
   Future<WalletModel?> getActiveWallet();
   Future<void> updateNetwork(String network);
+  Future<void> addTokenToWallet(String walletId, TokenModel token);
+  Future<void> removeTokenFromWallet(
+      String walletId, String tokenContractAddress);
+  Future<List<TokenModel>> getWalletTokens(String walletId, {int? chainId});
 }
 
 class WalletLocalStorageImpl implements WalletLocalStorage {
@@ -91,5 +97,53 @@ class WalletLocalStorageImpl implements WalletLocalStorage {
   Future<void> updateNetwork(String network) async {
     final wallet = await getActiveWallet();
     await updateWallet(wallet!.copyWith(network: network));
+  }
+
+  @override
+  Future<void> addTokenToWallet(String walletId, TokenModel token) async {
+    final walletJson = await storage.read(key: 'wallet_data_$walletId');
+    if (walletJson == null) throw Exception('Wallet not found');
+
+    final wallet = WalletModel.fromJson(jsonDecode(walletJson));
+    if (wallet.tokens.any((t) => t.contractAddress == token.contractAddress)) {
+      return; // Token already exists
+    }
+
+    final updatedWallet = wallet.copyWith(
+      tokens: [...wallet.tokens, token],
+    );
+    await saveWallet(updatedWallet);
+  }
+
+  @override
+  Future<void> removeTokenFromWallet(
+      String walletId, String tokenContractAddress) async {
+    final walletJson = await storage.read(key: 'wallet_data_$walletId');
+    if (walletJson == null) throw Exception('Wallet not found');
+
+    final wallet = WalletModel.fromJson(jsonDecode(walletJson));
+    final updatedTokens = wallet.tokens
+        .where((token) => token.contractAddress != tokenContractAddress)
+        .toList();
+
+    final updatedWallet = wallet.copyWith(tokens: updatedTokens);
+    await saveWallet(updatedWallet);
+  }
+
+  @override
+  Future<List<TokenModel>> getWalletTokens(String walletId,
+      {int? chainId}) async {
+    final walletJson = await storage.read(key: 'wallet_data_$walletId');
+    if (walletJson == null) throw Exception('Wallet not found');
+
+    final wallet = WalletModel.fromJson(jsonDecode(walletJson));
+
+    // Filter tokens by chainId if provided
+    if (chainId != null) {
+      return wallet.tokens.where((token) => token.chainId == chainId).toList()
+          as List<TokenModel>;
+    }
+
+    return wallet.tokens as List<TokenModel>;
   }
 }
