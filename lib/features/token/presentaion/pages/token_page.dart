@@ -116,6 +116,7 @@ class _TokenSearchPageState extends State<TokenSearchPage> {
                   return _filteredTokens.isEmpty
                       ? const Center(child: Text('No matching tokens found'))
                       : TokenList(
+                          currentChainId: widget.chainId,
                           tokens: _filteredTokens,
                           walletId: widget.walletId,
                         );

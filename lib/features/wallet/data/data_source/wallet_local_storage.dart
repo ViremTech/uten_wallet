@@ -105,14 +105,22 @@ class WalletLocalStorageImpl implements WalletLocalStorage {
     if (walletJson == null) throw Exception('Wallet not found');
 
     final wallet = WalletModel.fromJson(jsonDecode(walletJson));
-    if (wallet.tokens.any((t) => t.contractAddress == token.contractAddress)) {
-      return; // Token already exists
+
+    // Check for duplicate tokens
+    if (wallet.tokens.any((t) =>
+        t.contractAddress == token.contractAddress &&
+        t.chainId == token.chainId)) {
+      throw Exception('Token already exists in wallet');
     }
 
     final updatedWallet = wallet.copyWith(
       tokens: [...wallet.tokens, token],
     );
-    await saveWallet(updatedWallet);
+
+    await storage.write(
+      key: 'wallet_data_$walletId',
+      value: jsonEncode(updatedWallet.toJson()),
+    );
   }
 
   @override
@@ -138,12 +146,11 @@ class WalletLocalStorageImpl implements WalletLocalStorage {
 
     final wallet = WalletModel.fromJson(jsonDecode(walletJson));
 
-    // Filter tokens by chainId if provided
-    if (chainId != null) {
-      return wallet.tokens.where((token) => token.chainId == chainId).toList()
-          as List<TokenModel>;
-    }
+    // Filter by chainId if provided
+    final tokens = chainId != null
+        ? wallet.tokens.where((t) => t.chainId == chainId).toList()
+        : wallet.tokens;
 
-    return wallet.tokens as List<TokenModel>;
+    return tokens.cast<TokenModel>();
   }
 }

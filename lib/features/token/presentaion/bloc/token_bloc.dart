@@ -1,16 +1,12 @@
-// features/token/presentation/bloc/token_bloc.dart
-import 'package:dartz/dartz.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:uten_wallet/core/error/failure.dart';
-import 'package:uten_wallet/features/token/data/model/token_model.dart';
 
+import '../../data/model/token_model.dart';
 import '../../domain/entity/token_entity.dart';
 import '../../domain/usecase/add_token_to_wallet.dart';
 import '../../domain/usecase/get_cache_tokens.dart';
 import '../../domain/usecase/get_toke_usecase.dart';
 import '../../domain/usecase/get_wallet_token.dart';
-
 import '../../domain/usecase/remove_token_from_wallet.dart';
 
 part 'token_event.dart';
@@ -32,44 +28,44 @@ class TokenBloc extends Bloc<TokenEvent, TokenState> {
   }) : super(TokenInitial()) {
     on<FetchTokens>(_onFetchTokens);
     on<LoadCachedTokens>(_onLoadCachedTokens);
-    on<AddToken>(_onAddToken);
+    on<VerifyAndAddToken>(_onVerifyAndAddToken);
     on<LoadWalletTokens>(_onLoadWalletTokens);
     on<RemoveToken>(_onRemoveToken);
   }
 
   Future<void> _onFetchTokens(
-      FetchTokens event, Emitter<TokenState> emit) async {
+    FetchTokens event,
+    Emitter<TokenState> emit,
+  ) async {
     emit(TokenLoading());
     final result = await getTokens(event.chainId);
-    _emitTokenState(result, emit);
-  }
-
-  Future<void> _onLoadCachedTokens(
-      LoadCachedTokens event, Emitter<TokenState> emit) async {
-    emit(TokenLoading());
-    final result = await getCachedTokens(event.chainId);
-    _emitTokenState(result, emit);
-  }
-
-  Future<void> _onLoadWalletTokens(
-      LoadWalletTokens event, Emitter<TokenState> emit) async {
-    emit(TokenLoading());
-    final result =
-        await getWalletTokens(Params(event.walletId, chainId: event.chainId));
-    _emitTokenState(result, emit);
-  }
-
-  void _emitTokenState(
-    Either<Failure, List<TokenEntity>> result,
-    Emitter<TokenState> emit,
-  ) {
     result.fold(
       (failure) => emit(TokenError(failure.message)),
       (tokens) => emit(TokenLoaded(tokens)),
     );
   }
 
-  Future<void> _onAddToken(AddToken event, Emitter<TokenState> emit) async {
+  Future<void> _onLoadCachedTokens(
+    LoadCachedTokens event,
+    Emitter<TokenState> emit,
+  ) async {
+    emit(TokenLoading());
+    final result = await getCachedTokens(event.chainId);
+    result.fold(
+      (failure) => emit(TokenError(failure.message)),
+      (tokens) => emit(TokenLoaded(tokens)),
+    );
+  }
+
+  Future<void> _onVerifyAndAddToken(
+    VerifyAndAddToken event,
+    Emitter<TokenState> emit,
+  ) async {
+    if (event.token.chainId != event.currentChainId) {
+      emit(TokenNetworkMismatch('Token network doesn\'t match wallet network'));
+      return;
+    }
+
     emit(TokenOperationInProgress());
     final result = await addTokenToWallet(
       AddTokenParams(walletId: event.walletId, token: event.token),
@@ -79,15 +75,30 @@ class TokenBloc extends Bloc<TokenEvent, TokenState> {
       (failure) => emit(TokenError(failure.message)),
       (_) {
         emit(TokenAddedSuccessfully());
-        // Reload wallet tokens after adding
         add(LoadWalletTokens(
-            walletId: event.walletId, chainId: event.token.chainId));
+            walletId: event.walletId, chainId: event.currentChainId));
       },
     );
   }
 
+  Future<void> _onLoadWalletTokens(
+    LoadWalletTokens event,
+    Emitter<TokenState> emit,
+  ) async {
+    emit(TokenLoading());
+    final result = await getWalletTokens(
+      Params(event.walletId, chainId: event.chainId),
+    );
+    result.fold(
+      (failure) => emit(TokenError(failure.message)),
+      (tokens) => emit(TokenLoaded(tokens)),
+    );
+  }
+
   Future<void> _onRemoveToken(
-      RemoveToken event, Emitter<TokenState> emit) async {
+    RemoveToken event,
+    Emitter<TokenState> emit,
+  ) async {
     emit(TokenOperationInProgress());
     final result = await removeTokenFromWallet(
       RemoveTokenParams(
@@ -100,7 +111,6 @@ class TokenBloc extends Bloc<TokenEvent, TokenState> {
       (failure) => emit(TokenError(failure.message)),
       (_) {
         emit(TokenRemovedSuccessfully());
-        // Reload wallet tokens after removing
         add(LoadWalletTokens(walletId: event.walletId, chainId: event.chainId));
       },
     );

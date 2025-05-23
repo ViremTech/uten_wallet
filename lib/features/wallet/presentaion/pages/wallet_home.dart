@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uten_wallet/core/constant/constant.dart';
-
 import 'package:uten_wallet/core/network/presentaion/pages/network_page.dart';
 import 'package:uten_wallet/features/onboarding/presentaion/widget/button_widget.dart';
 import 'package:uten_wallet/features/wallet/data/model/wallet_model.dart';
-
 import 'package:uten_wallet/features/wallet/presentaion/pages/receieve_page.dart';
 import 'package:uten_wallet/features/wallet/presentaion/pages/wallets_page.dart';
 import 'package:uten_wallet/features/wallet/presentaion/widget/Icon_text_widget.dart';
 import 'package:uten_wallet/features/wallet/presentaion/widget/address_widget.dart';
 import '../../../../core/network/presentaion/bloc/evmchain_bloc.dart';
 import '../../../../core/util/truncate_address.dart';
+import '../../../token/data/model/token_model.dart';
 import '../../../token/presentaion/pages/token_page.dart';
 import '../bloc/get_active_wallet/get_active_wallet_bloc.dart';
 
@@ -24,10 +23,8 @@ class WalletHome extends StatefulWidget {
 }
 
 class _WalletHomeState extends State<WalletHome> {
-  bool hasToken = false;
   bool hasNfts = false;
   bool hasDefi = false;
-  late final myWalletNetwork;
 
   Future<void> onRefresh() async {
     context.read<GetActiveWalletBloc>().add(LoadActiveWallet());
@@ -233,184 +230,205 @@ class _WalletHomeState extends State<WalletHome> {
                           ),
                         ),
                         SliverFillRemaining(
-                          child: TabBarView(
-                            children: [
-                              hasToken
-                                  ? ListView.builder(
-                                      itemBuilder: (context, index) =>
-                                          const ListTile(),
-                                    )
-                                  : Center(
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Column(
+                          child: BlocBuilder<EvmChainBloc, EvmChainState>(
+                            builder: (context, chainState) {
+                              if (chainState is! EvmChainLoadedByIdState) {
+                                return const Center(
+                                    child: CircularProgressIndicator());
+                              }
+
+                              final currentChainId = chainState.chain.chainId;
+                              final currentNetworkTokens = wallet.tokens
+                                  .where((token) =>
+                                      token.chainId == currentChainId)
+                                  .toList();
+                              final hasTokens = currentNetworkTokens.isNotEmpty;
+
+                              return TabBarView(
+                                children: [
+                                  hasTokens
+                                      ? ListView.builder(
+                                          itemCount:
+                                              currentNetworkTokens.length,
+                                          itemBuilder: (context, index) {
+                                            final token =
+                                                currentNetworkTokens[index]
+                                                    as TokenModel;
+                                            return ListTile(
+                                              leading: CircleAvatar(
+                                                backgroundImage:
+                                                    NetworkImage(token.logoURI),
+                                              ),
+                                              title: Text(token.name),
+                                              subtitle: Text(token.symbol),
+                                              trailing:
+                                                  Text('\$${token.balance}'),
+                                            );
+                                          },
+                                        )
+                                      : Center(
+                                          child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
                                             children: [
-                                              const SizedBox(height: 30),
-                                              Image.asset(
-                                                  'assets/images/home1.png'),
-                                              Text(
-                                                'Add crypto to get started',
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .bodyLarge!
-                                                    .copyWith(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        fontSize: 18),
+                                              Column(
+                                                children: [
+                                                  const SizedBox(height: 30),
+                                                  Image.asset(
+                                                      'assets/images/home1.png'),
+                                                  Text(
+                                                    'Add crypto to get started',
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .bodyLarge!
+                                                        .copyWith(
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            fontSize: 18),
+                                                  ),
+                                                  const SizedBox(height: 10),
+                                                  Text(
+                                                    'You can add funds with your Uten account or another wallet.',
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .bodySmall!
+                                                        .copyWith(
+                                                            color: Colors.grey),
+                                                    textAlign: TextAlign.center,
+                                                  ),
+                                                ],
                                               ),
-                                              const SizedBox(height: 10),
-                                              Text(
-                                                'You can add funds with your Uten account or another wallet.',
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .bodySmall!
-                                                    .copyWith(
-                                                        color: Colors.grey),
-                                                textAlign: TextAlign.center,
-                                              ),
-                                            ],
-                                          ),
-                                          BlocListener<EvmChainBloc,
-                                              EvmChainState>(
-                                            listener: (context, state) {
-                                              if (state
-                                                  is EvmChainLoadedByIdState) {
-                                                myWalletNetwork =
-                                                    state.chain.chainId;
-                                              }
-                                            },
-                                            child: Padding(
-                                              padding: const EdgeInsets.only(
-                                                  bottom: 20),
-                                              child: ButtonWidget(
-                                                paddng: 0,
-                                                onPressed: () {
-                                                  Navigator.push(
-                                                    context,
-                                                    MaterialPageRoute(
-                                                      builder: (context) =>
-                                                          TokenSearchPage(
-                                                        walletId: wallet.id,
-                                                        chainId:
-                                                            myWalletNetwork,
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                    bottom: 20),
+                                                child: ButtonWidget(
+                                                  paddng: 0,
+                                                  onPressed: () {
+                                                    Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            TokenSearchPage(
+                                                          walletId: wallet.id,
+                                                          chainId:
+                                                              currentChainId,
+                                                        ),
                                                       ),
-                                                    ),
-                                                  );
-                                                },
-                                                color: primaryColor,
-                                                text: 'Add Cryto',
-                                                textColor: Colors.black,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                              hasNfts
-                                  ? ListView.builder(
-                                      itemBuilder: (context, index) =>
-                                          const ListTile(),
-                                    )
-                                  : Center(
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Column(
-                                            children: [
-                                              const SizedBox(height: 30),
-                                              Image.asset(
-                                                  'assets/images/home2.png'),
-                                              Text(
-                                                'Get Started with NFTs',
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .bodyLarge!
-                                                    .copyWith(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        fontSize: 18),
-                                              ),
-                                              const SizedBox(height: 10),
-                                              Text(
-                                                "First you'll need to add some ETH to your wallet",
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .bodySmall!
-                                                    .copyWith(
-                                                        color: Colors.grey),
-                                                textAlign: TextAlign.center,
+                                                    );
+                                                  },
+                                                  color: primaryColor,
+                                                  text: 'Add Crypto',
+                                                  textColor: Colors.black,
+                                                ),
                                               ),
                                             ],
                                           ),
-                                          Padding(
-                                            padding: const EdgeInsets.only(
-                                                bottom: 20),
-                                            child: ButtonWidget(
-                                              paddng: 0,
-                                              onPressed: () {},
-                                              color: primaryColor,
-                                              text: 'Add Cryto',
-                                              textColor: Colors.black,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                              hasDefi
-                                  ? ListView.builder(
-                                      itemBuilder: (context, index) =>
-                                          const ListTile(),
-                                    )
-                                  : Center(
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Column(
+                                        ),
+                                  hasNfts
+                                      ? ListView.builder(
+                                          itemBuilder: (context, index) =>
+                                              const ListTile(),
+                                        )
+                                      : Center(
+                                          child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
                                             children: [
-                                              const SizedBox(height: 30),
-                                              Image.asset(
-                                                  'assets/images/home3.png'),
-                                              Text(
-                                                'Start earning with DeFi',
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .bodyLarge!
-                                                    .copyWith(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                        fontSize: 18),
+                                              Column(
+                                                children: [
+                                                  const SizedBox(height: 30),
+                                                  Image.asset(
+                                                      'assets/images/home2.png'),
+                                                  Text(
+                                                    'Get Started with NFTs',
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .bodyLarge!
+                                                        .copyWith(
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            fontSize: 18),
+                                                  ),
+                                                  const SizedBox(height: 10),
+                                                  Text(
+                                                    "First you'll need to add some ETH to your wallet",
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .bodySmall!
+                                                        .copyWith(
+                                                            color: Colors.grey),
+                                                    textAlign: TextAlign.center,
+                                                  ),
+                                                ],
                                               ),
-                                              const SizedBox(height: 10),
-                                              Text(
-                                                'Add crypto you wallet to get started with decentralized finances',
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .bodySmall!
-                                                    .copyWith(
-                                                        color: Colors.grey),
-                                                textAlign: TextAlign.center,
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                    bottom: 20),
+                                                child: ButtonWidget(
+                                                  paddng: 0,
+                                                  onPressed: () {},
+                                                  color: primaryColor,
+                                                  text: 'Add Cryto',
+                                                  textColor: Colors.black,
+                                                ),
                                               ),
                                             ],
                                           ),
-                                          Padding(
-                                            padding: const EdgeInsets.only(
-                                                bottom: 20),
-                                            child: ButtonWidget(
-                                              paddng: 0,
-                                              onPressed: () {},
-                                              color: primaryColor,
-                                              text: 'Add Cryto',
-                                              textColor: Colors.black,
-                                            ),
+                                        ),
+                                  hasDefi
+                                      ? ListView.builder(
+                                          itemBuilder: (context, index) =>
+                                              const ListTile(),
+                                        )
+                                      : Center(
+                                          child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Column(
+                                                children: [
+                                                  const SizedBox(height: 30),
+                                                  Image.asset(
+                                                      'assets/images/home3.png'),
+                                                  Text(
+                                                    'Start earning with DeFi',
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .bodyLarge!
+                                                        .copyWith(
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                            fontSize: 18),
+                                                  ),
+                                                  const SizedBox(height: 10),
+                                                  Text(
+                                                    'Add crypto you wallet to get started with decentralized finances',
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .bodySmall!
+                                                        .copyWith(
+                                                            color: Colors.grey),
+                                                    textAlign: TextAlign.center,
+                                                  ),
+                                                ],
+                                              ),
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                    bottom: 20),
+                                                child: ButtonWidget(
+                                                  paddng: 0,
+                                                  onPressed: () {},
+                                                  color: primaryColor,
+                                                  text: 'Add Cryto',
+                                                  textColor: Colors.black,
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                        ],
-                                      ),
-                                    ),
-                            ],
+                                        ),
+                                ],
+                              );
+                            },
                           ),
                         ),
                       ],
