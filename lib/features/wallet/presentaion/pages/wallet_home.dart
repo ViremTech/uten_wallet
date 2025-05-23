@@ -50,201 +50,222 @@ class _WalletHomeState extends State<WalletHome> {
                   networkId: wallet!.network,
                 ),
               );
-          return Scaffold(
-            body: DefaultTabController(
-              length: 3,
-              child: SafeArea(
-                child: RefreshIndicator(
-                  onRefresh: onRefresh,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 22.0),
-                    child: CustomScrollView(
-                      slivers: [
-                        SliverToBoxAdapter(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const SizedBox(height: 10),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
+          return BlocBuilder<EvmChainBloc, EvmChainState>(
+            builder: (context, chainState) {
+              if (chainState is! EvmChainLoadedByIdState) {
+                return const Scaffold(
+                  body: Center(child: CircularProgressIndicator()),
+                );
+              }
+
+              final currentChainId = chainState.chain.chainId;
+              final currentNetworkTokens = wallet.tokens
+                  .where((token) => token.chainId == currentChainId)
+                  .toList();
+              final hasTokens = currentNetworkTokens.isNotEmpty;
+
+              return Scaffold(
+                floatingActionButton: hasTokens
+                    ? FloatingActionButton.extended(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => TokenSearchPage(
+                                walletId: wallet.id,
+                                chainId: currentChainId,
+                              ),
+                            ),
+                          );
+                        },
+                        label: Text(
+                          'Add Token',
+                        ),
+                      )
+                    : null,
+                floatingActionButtonLocation:
+                    FloatingActionButtonLocation.centerFloat,
+                body: DefaultTabController(
+                  length: 3,
+                  child: SafeArea(
+                    child: RefreshIndicator(
+                      onRefresh: onRefresh,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 22.0),
+                        child: CustomScrollView(
+                          slivers: [
+                            SliverToBoxAdapter(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  GestureDetector(
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              WalletsPage(model: widget.wallet),
-                                        ),
-                                      );
-                                    },
-                                    child: Row(
-                                      children: [
-                                        Container(
-                                          width: 30,
-                                          height: 30,
-                                          decoration: BoxDecoration(
-                                            color: Colors.grey,
-                                            borderRadius:
-                                                BorderRadius.circular(20),
-                                          ),
-                                          child: const Icon(
-                                            Icons.person,
-                                            size: 18,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Column(
-                                          children: [
-                                            Text(
-                                              wallet.name,
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .bodyMedium,
-                                            ),
-                                            Text(
-                                              wallet.network,
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .labelMedium,
-                                            ),
-                                          ],
-                                        ),
-                                        const Icon(Icons.arrow_drop_down),
-                                      ],
-                                    ),
-                                  ),
+                                  const SizedBox(height: 10),
                                   Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
-                                      IconButton(
-                                        icon: const Icon(
-                                          Icons.copy,
-                                          size: 24,
-                                        ),
-                                        tooltip: 'Copy address',
-                                        onPressed: () {
-                                          receiveAssets(
-                                              context, wallet.address);
-                                        },
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(
-                                          Icons.notifications_outlined,
-                                          size: 24,
-                                        ),
-                                        tooltip: 'Notifications',
-                                        onPressed: () {},
-                                      ),
                                       GestureDetector(
                                         onTap: () {
                                           Navigator.push(
                                             context,
                                             MaterialPageRoute(
-                                              builder: (context) =>
-                                                  const NetworkPage(),
+                                              builder: (context) => WalletsPage(
+                                                  model: widget.wallet),
                                             ),
                                           );
                                         },
-                                        child: const Row(
-                                          mainAxisSize: MainAxisSize.min,
+                                        child: Row(
                                           children: [
-                                            Text(
-                                              'Network',
-                                              style: TextStyle(fontSize: 14),
+                                            Container(
+                                              width: 30,
+                                              height: 30,
+                                              decoration: BoxDecoration(
+                                                color: Colors.grey,
+                                                borderRadius:
+                                                    BorderRadius.circular(20),
+                                              ),
+                                              child: const Icon(
+                                                Icons.person,
+                                                size: 18,
+                                              ),
                                             ),
-                                            Icon(
-                                              Icons.arrow_drop_down,
-                                              size: 24,
+                                            const SizedBox(width: 8),
+                                            Column(
+                                              children: [
+                                                Text(
+                                                  wallet.name,
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .bodyMedium,
+                                                ),
+                                                Text(
+                                                  wallet.network,
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .labelMedium,
+                                                ),
+                                              ],
                                             ),
+                                            const Icon(Icons.arrow_drop_down),
                                           ],
                                         ),
                                       ),
+                                      Row(
+                                        children: [
+                                          IconButton(
+                                            icon: const Icon(
+                                              Icons.copy,
+                                              size: 24,
+                                            ),
+                                            tooltip: 'Copy address',
+                                            onPressed: () {
+                                              receiveAssets(
+                                                  context, wallet.address);
+                                            },
+                                          ),
+                                          IconButton(
+                                            icon: const Icon(
+                                              Icons.notifications_outlined,
+                                              size: 24,
+                                            ),
+                                            tooltip: 'Notifications',
+                                            onPressed: () {},
+                                          ),
+                                          GestureDetector(
+                                            onTap: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      const NetworkPage(),
+                                                ),
+                                              );
+                                            },
+                                            child: const Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Text(
+                                                  'Network',
+                                                  style:
+                                                      TextStyle(fontSize: 14),
+                                                ),
+                                                Icon(
+                                                  Icons.arrow_drop_down,
+                                                  size: 24,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      )
                                     ],
-                                  )
-                                ],
-                              ),
-                              const SizedBox(height: 10),
-                              Text(
-                                "USD ${wallet.balance}",
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyLarge!
-                                    .copyWith(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 24,
-                                    ),
-                              ),
-                              const SizedBox(height: 30),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  IconText(
-                                    text: 'Buy',
-                                    onTap: () {},
-                                    icon: Icons.add,
                                   ),
-                                  IconText(
-                                    text: 'Swap',
-                                    onTap: () {},
-                                    icon: Icons.swap_horiz,
-                                  ),
-                                  IconText(
-                                    text: 'Bridge',
-                                    onTap: () {},
-                                    icon: Icons.navigate_next,
-                                  ),
-                                  IconText(
-                                    text: 'Send',
-                                    onTap: () {},
-                                    icon: Icons.arrow_upward_outlined,
-                                  ),
-                                  IconText(
-                                    text: 'Receive',
-                                    onTap: () {
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              ReceievePage(wallet: wallet),
+                                  const SizedBox(height: 10),
+                                  Text(
+                                    "USD ${wallet.balance}",
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyLarge!
+                                        .copyWith(
+                                          fontWeight: FontWeight.w500,
+                                          fontSize: 24,
                                         ),
-                                      );
-                                    },
-                                    icon: Icons.arrow_downward_outlined,
+                                  ),
+                                  const SizedBox(height: 30),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      IconText(
+                                        text: 'Buy',
+                                        onTap: () {},
+                                        icon: Icons.add,
+                                      ),
+                                      IconText(
+                                        text: 'Swap',
+                                        onTap: () {},
+                                        icon: Icons.swap_horiz,
+                                      ),
+                                      IconText(
+                                        text: 'Bridge',
+                                        onTap: () {},
+                                        icon: Icons.navigate_next,
+                                      ),
+                                      IconText(
+                                        text: 'Send',
+                                        onTap: () {},
+                                        icon: Icons.arrow_upward_outlined,
+                                      ),
+                                      IconText(
+                                        text: 'Receive',
+                                        onTap: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  ReceievePage(wallet: wallet),
+                                            ),
+                                          );
+                                        },
+                                        icon: Icons.arrow_downward_outlined,
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 30),
+                                  const TabBar(
+                                    dividerHeight: 0,
+                                    isScrollable: true,
+                                    tabAlignment: TabAlignment.start,
+                                    tabs: [
+                                      Tab(text: 'Crypto'),
+                                      Tab(text: 'NFTs'),
+                                      Tab(text: 'DeFi'),
+                                    ],
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 30),
-                              const TabBar(
-                                dividerHeight: 0,
-                                isScrollable: true,
-                                tabAlignment: TabAlignment.start,
-                                tabs: [
-                                  Tab(text: 'Crypto'),
-                                  Tab(text: 'NFTs'),
-                                  Tab(text: 'DeFi'),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                        SliverFillRemaining(
-                          child: BlocBuilder<EvmChainBloc, EvmChainState>(
-                            builder: (context, chainState) {
-                              if (chainState is! EvmChainLoadedByIdState) {
-                                return const Center(
-                                    child: CircularProgressIndicator());
-                              }
-
-                              final currentChainId = chainState.chain.chainId;
-                              final currentNetworkTokens = wallet.tokens
-                                  .where((token) =>
-                                      token.chainId == currentChainId)
-                                  .toList();
-                              final hasTokens = currentNetworkTokens.isNotEmpty;
-
-                              return TabBarView(
+                            ),
+                            SliverFillRemaining(
+                              child: TabBarView(
                                 children: [
                                   hasTokens
                                       ? ListView.builder(
@@ -427,60 +448,60 @@ class _WalletHomeState extends State<WalletHome> {
                                           ),
                                         ),
                                 ],
-                              );
-                            },
-                          ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ),
-            bottomNavigationBar: Container(
-              height: 70,
-              decoration: BoxDecoration(
-                color: const Color(0xFF000000),
-                border: Border(
-                  top: BorderSide(
-                    color: Colors.grey.shade800,
-                    width: 1,
+                bottomNavigationBar: Container(
+                  height: 70,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF000000),
+                    border: Border(
+                      top: BorderSide(
+                        color: Colors.grey.shade800,
+                        width: 1,
+                      ),
+                    ),
+                  ),
+                  child: BottomNavigationBar(
+                    iconSize: 24,
+                    showUnselectedLabels: true,
+                    selectedFontSize: 9,
+                    unselectedFontSize: 9,
+                    backgroundColor: Colors.transparent,
+                    elevation: 0,
+                    selectedItemColor: primaryColor,
+                    unselectedItemColor: Colors.white,
+                    items: const [
+                      BottomNavigationBarItem(
+                        icon: Icon(Icons.pie_chart),
+                        label: 'Assets',
+                      ),
+                      BottomNavigationBarItem(
+                        icon: Icon(Icons.list_alt),
+                        label: 'Transactions',
+                      ),
+                      BottomNavigationBarItem(
+                        icon: Icon(Icons.language),
+                        label: 'Browser',
+                      ),
+                      BottomNavigationBarItem(
+                        icon: Icon(Icons.search),
+                        label: 'Explore',
+                      ),
+                      BottomNavigationBarItem(
+                        icon: Icon(Icons.settings),
+                        label: 'Settings',
+                      ),
+                    ],
                   ),
                 ),
-              ),
-              child: BottomNavigationBar(
-                iconSize: 24,
-                showUnselectedLabels: true,
-                selectedFontSize: 9,
-                unselectedFontSize: 9,
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                selectedItemColor: primaryColor,
-                unselectedItemColor: Colors.white,
-                items: const [
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.pie_chart),
-                    label: 'Assets',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.list_alt),
-                    label: 'Transactions',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.language),
-                    label: 'Browser',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.search),
-                    label: 'Explore',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.settings),
-                    label: 'Settings',
-                  ),
-                ],
-              ),
-            ),
+              );
+            },
           );
         }
 
