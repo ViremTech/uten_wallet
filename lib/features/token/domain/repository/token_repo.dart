@@ -20,4 +20,8 @@ abstract class TokenRepository {
     String walletId, {
     int? chainId,
   });
+
+  // Future<Either<Failure, TokenModel>> getTokenPrice(TokenEntity token);
+  // Future<Either<Failure, void>> cacheTokenPrice(TokenEntity token);
+  // Future<Either<Failure, TokenEntity>> getCachedTokenPrice(String tokenId);
 }

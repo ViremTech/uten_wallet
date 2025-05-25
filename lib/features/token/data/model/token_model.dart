@@ -1,3 +1,4 @@
+// features/token/data/models/token_model.dart
 import '../../domain/entity/token_entity.dart';
 
 class TokenModel extends TokenEntity {
@@ -11,10 +12,12 @@ class TokenModel extends TokenEntity {
     required super.logoURI,
     super.isNative = false,
     required super.balance,
-    this.usdPrice,
+    required super.tokenPrice,
+    super.coinGeckoId, // Added CoinGecko ID support
+    this.usdPrice, // Keep for backward compatibility if needed
   });
 
-  final String? usdPrice;
+  final String? usdPrice; // Deprecated, use tokenPrice.usdPrice instead
 
   factory TokenModel.fromJson(Map<String, dynamic> json) {
     // Determine chainId from chain name if chainId is null
@@ -30,8 +33,30 @@ class TokenModel extends TokenEntity {
       logoURI: json['icon'] ?? json['logoURI'] ?? '',
       isNative: json['isNative'] ?? false,
       balance: BigInt.parse(json['balance']?.toString() ?? '0'),
+      coinGeckoId:
+          json['coinGeckoId'] ?? json['coingecko_id'], // Support both formats
       usdPrice: json['usd']?.toString(),
+      tokenPrice: TokenPrice(
+        usdPrice: _parseDouble(json['usdPrice'] ?? json['usd'] ?? 0),
+        precentageChange: _parseDouble(
+            json['precentageChange'] ?? json['price_24h_change'] ?? 0),
+        totalUserValueUsd: _parseDouble(json['totalUserValueUsd'] ?? 0),
+        lastUpdated: json['lastUpdated'] != null
+            ? DateTime.tryParse(json['lastUpdated'].toString())
+            : DateTime.now(),
+      ),
     );
+  }
+
+  // Helper method to safely parse double from various types
+  static double _parseDouble(dynamic value) {
+    if (value == null) return 0.0;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is String) {
+      return double.tryParse(value) ?? 0.0;
+    }
+    return 0.0;
   }
 
   Map<String, dynamic> toJson() {
@@ -44,8 +69,15 @@ class TokenModel extends TokenEntity {
       'chainId': chainId,
       'decimals': decimals,
       'icon': logoURI,
+      'logoURI': logoURI,
       'isNative': isNative,
       'balance': balance.toString(),
+      'coinGeckoId': coinGeckoId,
+      'usdPrice': tokenPrice.usdPrice,
+      'precentageChange': tokenPrice.precentageChange,
+      'totalUserValueUsd': tokenPrice.totalUserValueUsd,
+      'lastUpdated': tokenPrice.lastUpdated?.toIso8601String(),
+      // Keep backward compatibility
       if (usdPrice != null) 'usd': usdPrice,
     };
   }
@@ -61,6 +93,8 @@ class TokenModel extends TokenEntity {
       logoURI: entity.logoURI,
       isNative: entity.isNative,
       balance: entity.balance,
+      tokenPrice: entity.tokenPrice,
+      coinGeckoId: entity.coinGeckoId,
     );
   }
 
@@ -70,11 +104,17 @@ class TokenModel extends TokenEntity {
 
     final chainMap = {
       'eth': 1,
+      'ethereum': 1,
       'bsc': 56,
+      'binance-smart-chain': 56,
       'polygon': 137,
+      'matic': 137,
       'arbitrum': 42161,
+      'arbitrum-one': 42161,
       'optimism': 10,
+      'optimistic-ethereum': 10,
       'avax': 43114,
+      'avalanche': 43114,
       'fantom': 250,
       'cronos': 25,
       'klaytn': 8217,
@@ -95,6 +135,8 @@ class TokenModel extends TokenEntity {
     String? logoURI,
     bool? isNative,
     BigInt? balance,
+    TokenPrice? tokenPrice,
+    String? coinGeckoId,
     String? usdPrice,
   }) {
     return TokenModel(
@@ -107,7 +149,30 @@ class TokenModel extends TokenEntity {
       logoURI: logoURI ?? this.logoURI,
       isNative: isNative ?? this.isNative,
       balance: balance ?? this.balance,
+      tokenPrice: tokenPrice ?? this.tokenPrice,
+      coinGeckoId: coinGeckoId ?? this.coinGeckoId,
       usdPrice: usdPrice ?? this.usdPrice,
     );
+  }
+
+  // Helper method to create a TokenModel with updated price
+  TokenModel updatePrice({
+    required double usdPrice,
+    required double precentageChange,
+    required double totalUserValueUsd,
+  }) {
+    return copyWith(
+      tokenPrice: TokenPrice(
+        usdPrice: usdPrice,
+        precentageChange: precentageChange,
+        totalUserValueUsd: totalUserValueUsd,
+        lastUpdated: DateTime.now(),
+      ),
+    );
+  }
+
+  // Helper method to check if token needs price update
+  bool get needsPriceUpdate {
+    return tokenPrice.isStale;
   }
 }

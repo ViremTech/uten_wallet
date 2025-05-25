@@ -1,13 +1,12 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-
-import '../../data/model/token_model.dart';
-import '../../domain/entity/token_entity.dart';
-import '../../domain/usecase/add_token_to_wallet.dart';
-import '../../domain/usecase/get_cache_tokens.dart';
-import '../../domain/usecase/get_toke_usecase.dart';
-import '../../domain/usecase/get_wallet_token.dart';
-import '../../domain/usecase/remove_token_from_wallet.dart';
+import '../../../data/model/token_model.dart';
+import '../../../domain/entity/token_entity.dart';
+import '../../../domain/usecase/add_token_to_wallet.dart';
+import '../../../domain/usecase/get_cache_tokens.dart';
+import '../../../domain/usecase/get_toke_usecase.dart';
+import '../../../domain/usecase/get_wallet_token.dart';
+import '../../../domain/usecase/remove_token_from_wallet.dart';
 
 part 'token_event.dart';
 part 'token_state.dart';

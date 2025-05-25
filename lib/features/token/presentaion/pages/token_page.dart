@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:uten_wallet/features/token/data/model/token_model.dart';
+import 'package:uten_wallet/features/token/presentaion/bloc/token_price_bloc/token_price_bloc.dart';
 import '../../domain/entity/token_entity.dart';
-import '../bloc/token_bloc.dart';
+import '../bloc/token_bloc/token_bloc.dart';
 import '../widget/token_list_widget.dart';
 
 class TokenSearchPage extends StatefulWidget {
@@ -21,6 +23,7 @@ class TokenSearchPage extends StatefulWidget {
 class _TokenSearchPageState extends State<TokenSearchPage> {
   final TextEditingController _searchController = TextEditingController();
   late TokenBloc _tokenBloc;
+
   List<TokenEntity> _filteredTokens = [];
   List<TokenEntity> _allTokens = [];
 

@@ -11,6 +11,8 @@ import 'package:uten_wallet/features/wallet/presentaion/widget/address_widget.da
 import '../../../../core/network/presentaion/bloc/evmchain_bloc.dart';
 import '../../../../core/util/truncate_address.dart';
 import '../../../token/data/model/token_model.dart';
+import '../../../token/domain/entity/token_entity.dart';
+import '../../../token/presentaion/bloc/token_price_bloc/token_price_bloc.dart';
 import '../../../token/presentaion/pages/token_page.dart';
 import '../bloc/get_active_wallet/get_active_wallet_bloc.dart';
 
@@ -63,7 +65,11 @@ class _WalletHomeState extends State<WalletHome> {
                   .where((token) => token.chainId == currentChainId)
                   .toList();
               final hasTokens = currentNetworkTokens.isNotEmpty;
-
+              // for (TokenEntity token in widget.wallet.tokens) {
+              //   context
+              //       .read<TokenPriceBloc>()
+              //       .add(FetchTokenPrice(token: token));
+              // }
               return Scaffold(
                 floatingActionButton: hasTokens
                     ? FloatingActionButton.extended(
@@ -281,9 +287,36 @@ class _WalletHomeState extends State<WalletHome> {
                                                     NetworkImage(token.logoURI),
                                               ),
                                               title: Text(token.name),
-                                              subtitle: Text(token.symbol),
-                                              trailing:
-                                                  Text('\$${token.balance}'),
+                                              subtitle: Row(
+                                                children: [
+                                                  Text(
+                                                      '${token.tokenPrice.usdPrice}'),
+                                                  SizedBox(
+                                                    width: 5,
+                                                  ),
+                                                  Text(
+                                                    '${token.tokenPrice.precentageChange}%',
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .bodySmall,
+                                                  ),
+                                                ],
+                                              ),
+                                              trailing: Column(
+                                                children: [
+                                                  Text(
+                                                    '${token.balance}',
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .bodyMedium,
+                                                  ),
+                                                  SizedBox(
+                                                    height: 10,
+                                                  ),
+                                                  Text(
+                                                      '\$${token.tokenPrice.totalUserValueUsd}'),
+                                                ],
+                                              ),
                                             );
                                           },
                                         )

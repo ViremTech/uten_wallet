@@ -5,6 +5,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../../../../core/error/exception.dart';
 import '../../../../wallet/data/data_source/wallet_local_storage.dart';
+import '../../../domain/entity/token_entity.dart';
 import '../../model/token_model.dart';
 
 abstract class TokenLocalDataSource {
@@ -14,6 +15,8 @@ abstract class TokenLocalDataSource {
   Future<void> removeTokenFromWallet(
       String walletId, String tokenContractAddress);
   Future<List<TokenModel>> getWalletTokens(String walletId, {int? chainId});
+  // Future<void> cacheTokenPrice(TokenModel token);
+  // Future<TokenEntity?> getCachedTokenPrice(String tokenId);
 }
 
 class TokenLocalDataSourceImpl implements TokenLocalDataSource {
@@ -68,4 +71,30 @@ class TokenLocalDataSourceImpl implements TokenLocalDataSource {
       {int? chainId}) async {
     return await walletLocalStorage.getWalletTokens(walletId, chainId: chainId);
   }
+
+  // @override
+  // Future<void> cacheTokenPrice(TokenModel token) async {
+  //   try {
+  //     final jsonString = json.encode(token.toJson());
+  //     await secureStorage.write(
+  //       key: 'token_price_${token.id}',
+  //       value: jsonString,
+  //     );
+  //   } catch (e) {
+  //     throw CacheException();
+  //   }
+  // }
+
+  // @override
+  // Future<TokenEntity?> getCachedTokenPrice(String tokenId) async {
+  //   try {
+  //     final jsonString = await secureStorage.read(key: 'token_price_$tokenId');
+  //     if (jsonString == null) return null;
+
+  //     final jsonMap = json.decode(jsonString);
+  //     return TokenModel.fromJson(jsonMap);
+  //   } catch (e) {
+  //     throw CacheException();
+  //   }
+  // }
 }

@@ -4,8 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:uten_wallet/core/constant/constant.dart';
 import 'package:uten_wallet/features/wallet/data/model/wallet_model.dart';
+import 'package:uten_wallet/features/wallet/domain/usecase/get_active_wallet.dart';
 import 'package:uten_wallet/features/wallet/presentaion/bloc/generate_wallet_bloc/generate_wallet_bloc.dart';
 import 'package:uten_wallet/features/wallet/presentaion/pages/wallet_home.dart';
+
+import '../../../wallet/presentaion/bloc/get_active_wallet/get_active_wallet_bloc.dart';
+import '../../../wallet/presentaion/bloc/set_active_wallet/set_active_wallet_bloc.dart';
 
 class ConfirmSeed extends StatefulWidget {
   final List<String> correctSeed;
@@ -142,34 +146,46 @@ class _ConfirmSeedState extends State<ConfirmSeed> {
                   }).toList(),
                 ),
               ),
-              BlocListener<GenerateWalletBloc, GenerateWalletState>(
-                listener: (context, state) {
-                  if (state is GenerateWalletSuccess) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          'Seed phrase confirmed successfully!',
-                        ),
-                      ),
-                    );
-
-                    Navigator.pushAndRemoveUntil(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            WalletHome(wallet: state.wallet as WalletModel),
-                      ),
-                      (route) => false,
-                    );
-                  }
-                  if (state is GenerateWalletFailure) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(state.message),
-                      ),
-                    );
-                  }
-                },
+              MultiBlocListener(
+                listeners: [
+                  BlocListener<GenerateWalletBloc, GenerateWalletState>(
+                    listener: (context, state) {
+                      if (state is GenerateWalletSuccess) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Seed phrase confirmed successfully!',
+                            ),
+                          ),
+                        );
+                        context
+                            .read<GetActiveWalletBloc>()
+                            .add(LoadActiveWallet());
+                      }
+                      if (state is GenerateWalletFailure) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(state.message),
+                          ),
+                        );
+                      }
+                    },
+                  ),
+                  BlocListener<GetActiveWalletBloc, ActiveWalletState>(
+                    listener: (context, state) {
+                      if (state is ActiveWalletLoaded) {
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                WalletHome(wallet: state.wallet as WalletModel),
+                          ),
+                          (route) => false,
+                        );
+                      }
+                    },
+                  ),
+                ],
                 child: BlocBuilder<GenerateWalletBloc, GenerateWalletState>(
                   builder: (context, state) {
                     return Stack(

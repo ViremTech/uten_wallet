@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:uten_wallet/features/wallet/domain/entity/wallet_entity.dart';
 import 'package:uten_wallet/features/wallet/domain/usecase/set_active_wallet.dart';
 
 part 'set_active_wallet_event.dart';

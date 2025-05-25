@@ -114,4 +114,55 @@ class TokenRepositoryImpl implements TokenRepository {
       return Left(CacheFailure('Failed to cache tokens'));
     }
   }
+
+  // @override
+  // Future<Either<Failure, TokenModel>> getTokenPrice(TokenEntity token) async {
+  //   if (await networkInfo.isConnected) {
+  //     try {
+  //       final remoteToken = await remoteDataSource.getTokenPrice(token);
+  //       await localDataSource.cacheTokenPrice(remoteToken);
+  //       return Right(remoteToken);
+  //     } on ServerException {
+  //       return Left(ServerFailure('Server failure'));
+  //     } on NotFoundException {
+  //       return Left(ServerFailure('Token not found'));
+  //     }
+  //   } else {
+  //     try {
+  //       final localToken = await localDataSource.getCachedTokenPrice(token.id);
+  //       if (localToken != null) {
+  //         return Right(localToken);
+  //       } else {
+  //         return Left(CacheFailure('No cached data available'));
+  //       }
+  //     } on CacheException {
+  //       return Left(CacheFailure('Cache failure'));
+  //     }
+  //   }
+  // }
+
+  // @override
+  // Future<Either<Failure, void>> cacheTokenPrice(TokenEntity token) async {
+  //   try {
+  //     await localDataSource.cacheTokenPrice(token);
+  //     return const Right(null);
+  //   } on CacheException {
+  //     return Left(CacheFailure('Cache failure'));
+  //   }
+  // }
+
+  // @override
+  // Future<Either<Failure, TokenEntity>> getCachedTokenPrice(
+  //     String tokenId) async {
+  //   try {
+  //     final localToken = await localDataSource.getCachedTokenPrice(tokenId);
+  //     if (localToken != null) {
+  //       return Right(localToken);
+  //     } else {
+  //       return Left(CacheFailure('No cached data available'));
+  //     }
+  //   } on CacheException {
+  //     return Left(CacheFailure('Cache failure'));
+  //   }
+  // }
 }

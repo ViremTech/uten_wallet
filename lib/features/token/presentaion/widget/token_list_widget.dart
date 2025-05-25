@@ -5,7 +5,7 @@ import 'package:uten_wallet/features/token/data/model/token_model.dart';
 import 'package:uten_wallet/features/token/presentaion/widget/token_details.dart';
 
 import '../../domain/entity/token_entity.dart';
-import '../bloc/token_bloc.dart';
+import '../bloc/token_bloc/token_bloc.dart';
 
 class TokenList extends StatelessWidget {
   final List<TokenEntity> tokens;

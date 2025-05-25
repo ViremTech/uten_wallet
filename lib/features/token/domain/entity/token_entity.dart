@@ -6,11 +6,13 @@ class TokenEntity extends Equatable {
   final String name;
   final String symbol;
   final String contractAddress;
-  final int chainId; // Changed to int to match NetworkEntity
+  final int chainId;
   final int decimals;
   final String logoURI;
   final bool isNative;
   final BigInt balance;
+  final TokenPrice tokenPrice;
+  final String? coinGeckoId; // Added CoinGecko ID for better price lookup
 
   const TokenEntity({
     required this.id,
@@ -22,6 +24,8 @@ class TokenEntity extends Equatable {
     required this.logoURI,
     this.isNative = false,
     required this.balance,
+    required this.tokenPrice,
+    this.coinGeckoId, // Optional CoinGecko ID
   });
 
   @override
@@ -35,6 +39,8 @@ class TokenEntity extends Equatable {
         logoURI,
         isNative,
         balance,
+        tokenPrice,
+        coinGeckoId,
       ];
 
   TokenEntity copyWith({
@@ -47,6 +53,8 @@ class TokenEntity extends Equatable {
     String? logoURI,
     bool? isNative,
     BigInt? balance,
+    TokenPrice? tokenPrice,
+    String? coinGeckoId,
   }) {
     return TokenEntity(
       id: id ?? this.id,
@@ -58,6 +66,50 @@ class TokenEntity extends Equatable {
       logoURI: logoURI ?? this.logoURI,
       isNative: isNative ?? this.isNative,
       balance: balance ?? this.balance,
+      tokenPrice: tokenPrice ?? this.tokenPrice,
+      coinGeckoId: coinGeckoId ?? this.coinGeckoId,
     );
+  }
+}
+
+class TokenPrice extends Equatable {
+  final double usdPrice;
+  final double precentageChange;
+  final double totalUserValueUsd;
+  final DateTime? lastUpdated; // Added timestamp for cache management
+
+  const TokenPrice({
+    required this.usdPrice,
+    required this.precentageChange,
+    required this.totalUserValueUsd,
+    this.lastUpdated,
+  });
+
+  @override
+  List<Object?> get props => [
+        usdPrice,
+        precentageChange,
+        totalUserValueUsd,
+        lastUpdated,
+      ];
+
+  TokenPrice copyWith({
+    double? usdPrice,
+    double? precentageChange,
+    double? totalUserValueUsd,
+    DateTime? lastUpdated,
+  }) {
+    return TokenPrice(
+      usdPrice: usdPrice ?? this.usdPrice,
+      precentageChange: precentageChange ?? this.precentageChange,
+      totalUserValueUsd: totalUserValueUsd ?? this.totalUserValueUsd,
+      lastUpdated: lastUpdated ?? this.lastUpdated,
+    );
+  }
+
+  // Helper method to check if price data is stale (older than 5 minutes)
+  bool get isStale {
+    if (lastUpdated == null) return true;
+    return DateTime.now().difference(lastUpdated!).inMinutes > 5;
   }
 }

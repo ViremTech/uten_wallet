@@ -64,11 +64,13 @@ import 'package:uten_wallet/features/token/domain/usecase/get_cache_tokens.dart'
 import 'package:uten_wallet/features/token/domain/usecase/get_toke_usecase.dart';
 
 import 'package:uten_wallet/features/token/domain/usecase/remove_token_from_wallet.dart';
-import 'package:uten_wallet/features/token/presentaion/bloc/token_bloc.dart';
+import 'package:uten_wallet/features/token/presentaion/bloc/token_bloc/token_bloc.dart';
 
 import 'features/token/data/data_source/local_data_source/local_data_source.dart';
 import 'features/token/data/data_source/remote_data_source/remote_data_source.dart';
+import 'features/token/domain/usecase/get_token_price.dart';
 import 'features/token/domain/usecase/get_wallet_token.dart';
+import 'features/token/presentaion/bloc/token_price_bloc/token_price_bloc.dart';
 
 final sl = GetIt.instance;
 final internet = InternetConnectionChecker.instance;
@@ -208,6 +210,7 @@ void _token() {
   sl.registerLazySingleton(() => AddTokenToWallet(sl<TokenRepository>()));
   sl.registerLazySingleton(() => GetWalletTokens(sl<TokenRepository>()));
   sl.registerLazySingleton(() => RemoveTokenFromWallet(sl<TokenRepository>()));
+  // sl.registerLazySingleton(() => GetTokenPrice(sl<TokenRepository>()));
 
   // BLoC
   sl.registerFactory(
@@ -219,4 +222,40 @@ void _token() {
       removeTokenFromWallet: sl<RemoveTokenFromWallet>(),
     ),
   );
+  // sl.registerFactory(() => TokenPriceBloc(getTokenPrice: sl<GetTokenPrice>()));
 }
+
+// void tokenPrice() {
+  // BLoC
+  // sl.registerFactory(() => TokenPriceBloc(getTokenPrice: sl()));
+
+  // Use cases
+  // sl.registerLazySingleton(() => GetTokenPrice(sl()));
+
+  // Repository
+  // sl.registerLazySingleton<TokenRepository>(
+  //   () => TokenRepositoryImpl(
+  //     remoteDataSource: sl(),
+  //     localDataSource: sl(),
+  //     networkInfo: sl(),
+  //   ),
+  // );
+
+  // Data sources
+  // sl.registerLazySingleton<TokenRemoteDataSource>(
+  //   () => TokenRemoteDataSourceImpl(client: sl()),
+  // );
+
+  // sl.registerLazySingleton<TokenLocalDataSource>(
+  //   () =>
+  //       TokenLocalDataSourceImpl(secureStorage: sl(), walletLocalStorage: null),
+  // );
+
+  // // Core
+  // sl.registerLazySingleton<NetworkInfo>(() => NetworkInfoImpl(sl()));
+
+  // // External
+  // sl.registerLazySingleton(() => http.Client());
+  // sl.registerLazySingleton(() => const FlutterSecureStorage());
+  // sl.registerLazySingleton(() => InternetConnectionChecker());
+// }
