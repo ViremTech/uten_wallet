@@ -1,8 +1,8 @@
-// features/token/domain/entities/token_entity.dart
 import 'package:equatable/equatable.dart';
 
 class TokenEntity extends Equatable {
   final String id;
+  final String code;
   final String name;
   final String symbol;
   final String contractAddress;
@@ -16,6 +16,7 @@ class TokenEntity extends Equatable {
 
   const TokenEntity({
     required this.id,
+    required this.code,
     required this.name,
     required this.symbol,
     required this.contractAddress,
@@ -45,6 +46,7 @@ class TokenEntity extends Equatable {
 
   TokenEntity copyWith({
     String? id,
+    String? code,
     String? name,
     String? symbol,
     String? contractAddress,
@@ -58,6 +60,7 @@ class TokenEntity extends Equatable {
   }) {
     return TokenEntity(
       id: id ?? this.id,
+      code: code ?? this.code,
       name: name ?? this.name,
       symbol: symbol ?? this.symbol,
       contractAddress: contractAddress ?? this.contractAddress,
@@ -107,9 +110,37 @@ class TokenPrice extends Equatable {
     );
   }
 
+  static TokenPrice zero() {
+    return TokenPrice(
+        usdPrice: 0.0,
+        precentageChange: 0.0,
+        totalUserValueUsd: 0.0,
+        lastUpdated: DateTime.now());
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'usdPrice': usdPrice,
+      'precentageChange': precentageChange,
+      'totalUserValueUsd': totalUserValueUsd,
+      'lastUpdated': lastUpdated?.toIso8601String(),
+    };
+  }
+
+  factory TokenPrice.fromJson(Map<String, dynamic> json) {
+    return TokenPrice(
+      usdPrice: (json['usdPrice'] ?? 0.0).toDouble(),
+      precentageChange: (json['precentageChange'] ?? 0.0).toDouble(),
+      totalUserValueUsd: (json['totalUserValueUsd'] ?? 0.0).toDouble(),
+      lastUpdated: json['lastUpdated'] != null
+          ? DateTime.tryParse(json['lastUpdated'])
+          : null,
+    );
+  }
+
   // Helper method to check if price data is stale (older than 5 minutes)
   bool get isStale {
     if (lastUpdated == null) return true;
-    return DateTime.now().difference(lastUpdated!).inMinutes > 5;
+    return DateTime.now().difference(lastUpdated!).inMinutes > 1;
   }
 }

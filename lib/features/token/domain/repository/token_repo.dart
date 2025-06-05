@@ -21,7 +21,11 @@ abstract class TokenRepository {
     int? chainId,
   });
 
-  // Future<Either<Failure, TokenModel>> getTokenPrice(TokenEntity token);
-  // Future<Either<Failure, void>> cacheTokenPrice(TokenEntity token);
-  // Future<Either<Failure, TokenEntity>> getCachedTokenPrice(String tokenId);
+  Future<Either<Failure, TokenPrice>> getTokenPrice(TokenEntity token);
+  Future<Either<Failure, Map<String, TokenPrice>>> getTokenPrices(
+      List<String> coinGeckoIds);
+  Future<Either<Failure, List<TokenModel>>> updateTokenPrices(
+      List<TokenModel> tokens);
+  Future<Either<Failure, void>> cacheTokenPrices(
+      Map<String, TokenPrice> prices);
 }

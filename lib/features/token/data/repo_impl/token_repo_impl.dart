@@ -1,10 +1,12 @@
-// features/token/data/repositories/token_repository_impl.dart
+import 'dart:math';
+
 import 'package:dartz/dartz.dart';
 import 'package:uten_wallet/core/error/failure.dart';
 
 import '../../../../core/error/exception.dart';
 import '../../../../core/network_info/network_info.dart';
 import '../../domain/entity/token_entity.dart';
+
 import '../../domain/repository/token_repo.dart';
 import '../data_source/local_data_source/local_data_source.dart';
 import '../data_source/remote_data_source/remote_data_source.dart';
@@ -83,7 +85,7 @@ class TokenRepositoryImpl implements TokenRepository {
       await localDataSource.addTokenToWallet(walletId, token);
       return const Right(null);
     } on CacheException {
-      return Left(CacheFailure('Failed to cache tokens'));
+      return Left(CacheFailure('Failed to add token to wallet'));
     }
   }
 
@@ -95,15 +97,13 @@ class TokenRepositoryImpl implements TokenRepository {
           walletId, tokenContractAddress);
       return const Right(null);
     } on CacheException {
-      return Left(CacheFailure('Failed to cache tokens'));
+      return Left(CacheFailure('Failed to remove token from wallet'));
     }
   }
 
   @override
-  Future<Either<Failure, List<TokenEntity>>> getWalletTokens(
-    String walletId, {
-    int? chainId,
-  }) async {
+  Future<Either<Failure, List<TokenEntity>>> getWalletTokens(String walletId,
+      {int? chainId}) async {
     try {
       final tokens = await localDataSource.getWalletTokens(walletId);
       final filteredTokens = chainId != null
@@ -111,58 +111,116 @@ class TokenRepositoryImpl implements TokenRepository {
           : tokens;
       return Right(filteredTokens);
     } on CacheException {
-      return Left(CacheFailure('Failed to cache tokens'));
+      return Left(CacheFailure('Failed to get wallet tokens'));
     }
   }
 
-  // @override
-  // Future<Either<Failure, TokenModel>> getTokenPrice(TokenEntity token) async {
-  //   if (await networkInfo.isConnected) {
-  //     try {
-  //       final remoteToken = await remoteDataSource.getTokenPrice(token);
-  //       await localDataSource.cacheTokenPrice(remoteToken);
-  //       return Right(remoteToken);
-  //     } on ServerException {
-  //       return Left(ServerFailure('Server failure'));
-  //     } on NotFoundException {
-  //       return Left(ServerFailure('Token not found'));
-  //     }
-  //   } else {
-  //     try {
-  //       final localToken = await localDataSource.getCachedTokenPrice(token.id);
-  //       if (localToken != null) {
-  //         return Right(localToken);
-  //       } else {
-  //         return Left(CacheFailure('No cached data available'));
-  //       }
-  //     } on CacheException {
-  //       return Left(CacheFailure('Cache failure'));
-  //     }
-  //   }
-  // }
+  @override
+  Future<Either<Failure, TokenPrice>> getTokenPrice(TokenEntity token) async {
+    if (token.name.isEmpty) {
+      return Right(TokenPrice.zero());
+    }
 
-  // @override
-  // Future<Either<Failure, void>> cacheTokenPrice(TokenEntity token) async {
-  //   try {
-  //     await localDataSource.cacheTokenPrice(token);
-  //     return const Right(null);
-  //   } on CacheException {
-  //     return Left(CacheFailure('Cache failure'));
-  //   }
-  // }
+    if (await networkInfo.isConnected) {
+      try {
+        final price = await remoteDataSource.getTokenPrice(token);
+        return Right(price);
+      } on ServerException {
+        return Left(ServerFailure('Failed to fetch token price'));
+      }
+    } else {
+      try {
+        final cachedPrices = await localDataSource.getCachedTokenPrices();
+        final cachedPrice = cachedPrices[token.name];
+        return cachedPrice != null
+            ? Right(cachedPrice)
+            : Right(TokenPrice.zero());
+      } on CacheException {
+        return Left(CacheFailure('Failed to load cached prices'));
+      }
+    }
+  }
 
-  // @override
-  // Future<Either<Failure, TokenEntity>> getCachedTokenPrice(
-  //     String tokenId) async {
-  //   try {
-  //     final localToken = await localDataSource.getCachedTokenPrice(tokenId);
-  //     if (localToken != null) {
-  //       return Right(localToken);
-  //     } else {
-  //       return Left(CacheFailure('No cached data available'));
-  //     }
-  //   } on CacheException {
-  //     return Left(CacheFailure('Cache failure'));
-  //   }
-  // }
+  @override
+  Future<Either<Failure, Map<String, TokenPrice>>> getTokenPrices(
+      List<String> tokenName) async {
+    if (tokenName.isEmpty) {
+      return Right({});
+    }
+
+    if (await networkInfo.isConnected) {
+      try {
+        final prices = await remoteDataSource.getTokenPrices(tokenName);
+        await localDataSource.cacheTokenPrices(prices);
+        return Right(prices);
+      } on ServerException {
+        return Left(ServerFailure('Failed to fetch token prices'));
+      }
+    } else {
+      try {
+        final cachedPrices = await localDataSource.getCachedTokenPrices();
+        // Filter only the prices we need
+        final filteredPrices = <String, TokenPrice>{};
+        for (final id in tokenName) {
+          if (cachedPrices.containsKey(id)) {
+            filteredPrices[id] = cachedPrices[id]!;
+          }
+        }
+        return Right(filteredPrices);
+      } on CacheException {
+        return Left(CacheFailure('Failed to load cached prices'));
+      }
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<TokenModel>>> updateTokenPrices(
+      List<TokenModel> tokens) async {
+    try {
+      final tokensToUpdate = tokens.where((t) => t.tokenPrice.isStale).toList();
+      // print('Tokens is $tokensToUpdate');
+      // print('last token code is ${tokensToUpdate.last.code}');
+
+      if (tokensToUpdate.isEmpty) {
+        return Right(tokens);
+      }
+
+      final coinCodes = tokensToUpdate.map((t) => t.code).toList();
+      // print('Coin Codes: $coinCodes');
+
+      final pricesResult = await getTokenPrices(coinCodes);
+      return pricesResult.fold(
+        (failure) => Left(failure),
+        (prices) {
+          final updatedTokens = tokens.map((token) {
+            if (prices.containsKey(token.code)) {
+              final price = prices[token.code]!;
+              return TokenModel.fromEntity(token).updatePrice(
+                usdPrice: price.usdPrice,
+                precentageChange: price.precentageChange,
+                totalUserValueUsd: price.usdPrice *
+                    (token.balance.toDouble() / pow(10, token.decimals)),
+              );
+            }
+            return TokenModel.fromEntity(token);
+          }).toList();
+
+          return Right(updatedTokens);
+        },
+      );
+    } catch (e) {
+      return Left(ServerFailure('Failed to update token prices: $e'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> cacheTokenPrices(
+      Map<String, TokenPrice> prices) async {
+    try {
+      await localDataSource.cacheTokenPrices(prices);
+      return const Right(null);
+    } on CacheException {
+      return Left(CacheFailure('Failed to cache prices'));
+    }
+  }
 }

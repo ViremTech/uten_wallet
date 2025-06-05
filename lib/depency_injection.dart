@@ -1,5 +1,3 @@
-// lib/dependency_injection.dart
-
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
@@ -68,8 +66,11 @@ import 'package:uten_wallet/features/token/presentaion/bloc/token_bloc/token_blo
 
 import 'features/token/data/data_source/local_data_source/local_data_source.dart';
 import 'features/token/data/data_source/remote_data_source/remote_data_source.dart';
+
 import 'features/token/domain/usecase/get_token_price.dart';
+import 'features/token/domain/usecase/get_token_prices.dart';
 import 'features/token/domain/usecase/get_wallet_token.dart';
+import 'features/token/domain/usecase/update_token_price.dart';
 import 'features/token/presentaion/bloc/token_price_bloc/token_price_bloc.dart';
 
 final sl = GetIt.instance;
@@ -204,15 +205,19 @@ void _token() {
     ),
   );
 
-  // Use cases
+  // Original use cases
   sl.registerLazySingleton(() => GetTokens(sl<TokenRepository>()));
   sl.registerLazySingleton(() => GetCachedTokens(sl<TokenRepository>()));
   sl.registerLazySingleton(() => AddTokenToWallet(sl<TokenRepository>()));
   sl.registerLazySingleton(() => GetWalletTokens(sl<TokenRepository>()));
   sl.registerLazySingleton(() => RemoveTokenFromWallet(sl<TokenRepository>()));
-  // sl.registerLazySingleton(() => GetTokenPrice(sl<TokenRepository>()));
 
-  // BLoC
+  // New price-related use cases
+  sl.registerLazySingleton(() => GetTokenPrice(sl<TokenRepository>()));
+  sl.registerLazySingleton(() => GetTokenPrices(sl<TokenRepository>()));
+  sl.registerLazySingleton(() => UpdateTokenPrices(sl<TokenRepository>()));
+
+  // Original TokenBloc
   sl.registerFactory(
     () => TokenBloc(
       getTokens: sl<GetTokens>(),
@@ -222,7 +227,15 @@ void _token() {
       removeTokenFromWallet: sl<RemoveTokenFromWallet>(),
     ),
   );
-  // sl.registerFactory(() => TokenPriceBloc(getTokenPrice: sl<GetTokenPrice>()));
+
+  // New TokenPriceBloc
+  sl.registerFactory(
+    () => TokenPriceBloc(
+      getTokenPrice: sl<GetTokenPrice>(),
+      getTokenPrices: sl<GetTokenPrices>(),
+      updateTokenPrices: sl<UpdateTokenPrices>(),
+    ),
+  );
 }
 
 // void tokenPrice() {

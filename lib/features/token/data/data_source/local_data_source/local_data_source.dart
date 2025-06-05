@@ -1,11 +1,10 @@
 // features/token/data/datasources/token_local_data_source.dart
 import 'dart:convert';
-
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-
 import '../../../../../core/error/exception.dart';
 import '../../../../wallet/data/data_source/wallet_local_storage.dart';
 import '../../../domain/entity/token_entity.dart';
+
 import '../../model/token_model.dart';
 
 abstract class TokenLocalDataSource {
@@ -15,13 +14,14 @@ abstract class TokenLocalDataSource {
   Future<void> removeTokenFromWallet(
       String walletId, String tokenContractAddress);
   Future<List<TokenModel>> getWalletTokens(String walletId, {int? chainId});
-  // Future<void> cacheTokenPrice(TokenModel token);
-  // Future<TokenEntity?> getCachedTokenPrice(String tokenId);
+  Future<void> cacheTokenPrices(Map<String, TokenPrice> prices);
+  Future<Map<String, TokenPrice>> getCachedTokenPrices();
 }
 
 class TokenLocalDataSourceImpl implements TokenLocalDataSource {
   final FlutterSecureStorage secureStorage;
   final WalletLocalStorage walletLocalStorage;
+  static const String _priceCacheKey = 'token_price_cache';
 
   TokenLocalDataSourceImpl({
     required this.secureStorage,
@@ -72,29 +72,33 @@ class TokenLocalDataSourceImpl implements TokenLocalDataSource {
     return await walletLocalStorage.getWalletTokens(walletId, chainId: chainId);
   }
 
-  // @override
-  // Future<void> cacheTokenPrice(TokenModel token) async {
-  //   try {
-  //     final jsonString = json.encode(token.toJson());
-  //     await secureStorage.write(
-  //       key: 'token_price_${token.id}',
-  //       value: jsonString,
-  //     );
-  //   } catch (e) {
-  //     throw CacheException();
-  //   }
-  // }
+  @override
+  Future<void> cacheTokenPrices(Map<String, TokenPrice> prices) async {
+    try {
+      final priceMap =
+          prices.map((key, value) => MapEntry(key, value.toJson()));
+      await secureStorage.write(
+        key: _priceCacheKey,
+        value: json.encode(priceMap),
+      );
+    } catch (e) {
+      throw CacheException();
+    }
+  }
 
-  // @override
-  // Future<TokenEntity?> getCachedTokenPrice(String tokenId) async {
-  //   try {
-  //     final jsonString = await secureStorage.read(key: 'token_price_$tokenId');
-  //     if (jsonString == null) return null;
+  @override
+  Future<Map<String, TokenPrice>> getCachedTokenPrices() async {
+    try {
+      final jsonString = await secureStorage.read(key: _priceCacheKey);
+      if (jsonString == null) return {};
 
-  //     final jsonMap = json.decode(jsonString);
-  //     return TokenModel.fromJson(jsonMap);
-  //   } catch (e) {
-  //     throw CacheException();
-  //   }
-  // }
+      final Map<String, dynamic> jsonMap = json.decode(jsonString);
+      return jsonMap.map((key, value) => MapEntry(
+            key,
+            TokenPrice.fromJson(value),
+          ));
+    } catch (e) {
+      throw CacheException();
+    }
+  }
 }

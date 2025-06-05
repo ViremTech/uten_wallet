@@ -14,7 +14,8 @@ class TokenModel extends TokenEntity {
     required super.balance,
     required super.tokenPrice,
     super.coinGeckoId, // Added CoinGecko ID support
-    this.usdPrice, // Keep for backward compatibility if needed
+    this.usdPrice,
+    required super.code, // Keep for backward compatibility if needed
   });
 
   final String? usdPrice; // Deprecated, use tokenPrice.usdPrice instead
@@ -45,6 +46,7 @@ class TokenModel extends TokenEntity {
             ? DateTime.tryParse(json['lastUpdated'].toString())
             : DateTime.now(),
       ),
+      code: json['code'] ?? '',
     );
   }
 
@@ -62,6 +64,7 @@ class TokenModel extends TokenEntity {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'code': code,
       'name': name,
       'symbol': symbol,
       'address': contractAddress,
@@ -95,6 +98,7 @@ class TokenModel extends TokenEntity {
       balance: entity.balance,
       tokenPrice: entity.tokenPrice,
       coinGeckoId: entity.coinGeckoId,
+      code: entity.code,
     );
   }
 
@@ -127,6 +131,7 @@ class TokenModel extends TokenEntity {
   @override
   TokenModel copyWith({
     String? id,
+    String? code,
     String? name,
     String? symbol,
     String? contractAddress,
@@ -141,6 +146,7 @@ class TokenModel extends TokenEntity {
   }) {
     return TokenModel(
       id: id ?? this.id,
+      code: code ?? this.code,
       name: name ?? this.name,
       symbol: symbol ?? this.symbol,
       contractAddress: contractAddress ?? this.contractAddress,
